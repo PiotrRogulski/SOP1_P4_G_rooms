@@ -1,12 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -fanalyzer
 LIBS = -lpthread -lncurses
-OBJS = util_funs.o
+OBJS = util_funs.o game_funs.o
 
 main: main.c $(OBJS)
 	$(CC) -o $@ $< $(OBJS) $(CFLAGS) $(LIBS)
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) -c $< $(CFLAGS) $(LIBS)
 
 .PHONY: clean

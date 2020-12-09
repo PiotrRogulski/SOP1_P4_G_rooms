@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
 
     wborder(mainWin, 0, 0, 0, 0, 0, 0, 0, 0);
     wborder(cmdWin, 0, 0, 0, 0, 0, 0, 0, 0);
-    mvwprintw(cmdWin, 0, 2, "Mode: Menu");
 
     wmove(cmdWin, 1, 2);
     wprintw(cmdWin, "Command: ");
@@ -41,20 +40,26 @@ int main(int argc, char **argv) {
     char buf[maxX];
     int isEnd = 0;
     while (!isEnd) {
+        char* isGameMode = getenv("IS_GAME_MODE");
+        if (isGameMode == NULL || atoi(isGameMode) == 0)
+            mvwprintw(cmdWin, 0, 2, " Mode: Menu ");
+        else
+            mvwprintw(cmdWin, 0, 2, " Mode: Game ");
         wmove(cmdWin, 1, 11);
         whline(cmdWin, ' ', maxX - 12);
-        wscanw(cmdWin, "%s", buf);
-        command_t *cmd = parse_command(buf);
-        if (cmd == NULL)
+        if (memset(buf, 0, maxX) == NULL)
+            ERROR("Couldn't set buffer");
+        wgetstr(cmdWin, buf);
+        int ret = exec_command(buf, mainWin);
+        if (ret == INVALID_CMD)
             continue;
-        switch (cmd->type) {
-            case Exit:
+        switch (ret) {
+            case EXIT_CMD:
                 isEnd = 1;
                 break;
             default:
                 break;
         }
-        free(cmd);
         wrefresh(cmdWin);
     }
 

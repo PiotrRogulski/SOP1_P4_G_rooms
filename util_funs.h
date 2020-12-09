@@ -1,6 +1,11 @@
 #include <linux/limits.h>
 #include <ncurses.h>
 
+#define INVALID_CMD -1
+#define OK_CMD       0
+#define EXIT_CMD     1
+#define QUIT_CMD     2
+
 typedef enum cmdType {
     Map_from_dir_tree,
     Generate_random_map,
@@ -25,4 +30,4 @@ void parse_args(int argc, char **argv);
 
 void set_backup(char *path);
 
-command_t *parse_command(char *cmd);
+int exec_command(char *cmd, WINDOW *mainWin);

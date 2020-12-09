@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "util_funs.h"
+#include "game_funs.h"
 
 #define ERROR(source) (perror(source),\
                      fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
@@ -39,90 +40,72 @@ void set_backup(char *path) {
             ERROR("Couldn't set GAME_AUTOSAVE");
 }
 
-command_t *parse_command(char *cmd) {
+int exec_command(char *cmd, WINDOW *mainWin) {
     char *isGameModeStr = getenv("IS_GAME_MODE");
     int isGameMode = 1;
     if (isGameModeStr == NULL || atoi(isGameModeStr) == 0)
         isGameMode = 0;
 
-    command_t *ret = malloc(sizeof(command_t));
-    if (ret == NULL)
-        ERROR("Couldn't allocate command");
     char *firstSpace = strchr(cmd, ' ');
 
     if (isGameMode) {
         if (firstSpace == NULL) {
             if (strcmp(cmd, "quit") != 0) {
-                free(ret);
-                return NULL;
+                return INVALID_CMD;
             }
-            ret->type = Quit;
-            ret->args = NULL;
-            return ret;
+            return QUIT_CMD;
         }
         *firstSpace = 0;
         char *args = firstSpace + 1;
-        ret->args = malloc(strlen(args) + 1);
-        if (ret->args == NULL)
-            ERROR("Couldn't allocate command args");
-        strcpy(ret->args, args);
+
         if (strcmp(cmd, "move-to") == 0) {
-            ret->type = Move_to;
-            return ret;
+            move_to();
+            return OK_CMD;
         }
         if (strcmp(cmd, "pick-up") == 0) {
-            ret->type = Pick_up;
-            return ret;
+            pick_up();
+            return OK_CMD;
         }
         if (strcmp(cmd, "drop") == 0) {
-            ret->type = Drop;
-            return ret;
+            drop();
+            return OK_CMD;
         }
         if (strcmp(cmd, "save") == 0) {
-            ret->type = Save;
-            return ret;
+            save();
+            return OK_CMD;
         }
         if (strcmp(cmd, "find-path") == 0) {
-            ret->type = Find_path;
-            return ret;
+            find_path();
+            return OK_CMD;
         }
     } else { // in menu
         if (firstSpace == NULL) {
             if (strcmp(cmd, "exit") != 0) {
-                free(ret);
-                return NULL;
+                return INVALID_CMD;
             }
-            ret->type = Exit;
-            ret->args = NULL;
-            return ret;
+            return EXIT_CMD;
         }
         *firstSpace = 0;
         char *args = firstSpace + 1;
-        ret->args = malloc(strlen(args) + 1);
-        if (ret->args == NULL)
-            ERROR("Couldn't allocate command args");
-        strcpy(ret->args, args);
+        system("touch ./test");
 
         if (strcmp(cmd, "map-from-dir-tree") == 0) {
-            ret->type = Map_from_dir_tree;
-            return ret;
+            map_from_dir_tree();
+            return OK_CMD;
         }
         if (strcmp(cmd, "generate-random-map") == 0) {
-            ret->type = Generate_random_map;
-            return ret;
+            generate_random_map();
+            return OK_CMD;
         }
         if (strcmp(cmd, "start-game") == 0) {
-            ret->type = Start_game;
-            return ret;
+            start_game();
+            return OK_CMD;
         }
         if (strcmp(cmd, "load-game") == 0) {
-            ret->type = Load_game;
-            return ret;
+            load_game();
+            return OK_CMD;
         }
     }
-    printf("%d\n", ret->type);
-    // Invalid command
-    free(ret->args);
-    free(ret);
-    return NULL;
+
+    return INVALID_CMD;
 }
