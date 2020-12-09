@@ -1,1 +1,1 @@
-# SOP1_P4_H_rooms
+# SOP1_P4_G_rooms
