@@ -30,4 +30,4 @@ void parse_args(int argc, char **argv);
 
 void set_backup(char *path);
 
-int exec_command(char *cmd, WINDOW *mainWin);
+int exec_command(char *cmd, WINDOW *win);

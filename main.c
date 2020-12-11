@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
             mvwprintw(cmdWin, 0, 2, " Mode: Menu ");
         else
             mvwprintw(cmdWin, 0, 2, " Mode: Game ");
+        wrefresh(cmdWin);
         wmove(cmdWin, 1, 11);
         whline(cmdWin, ' ', maxX - 12);
         if (memset(buf, 0, maxX) == NULL)

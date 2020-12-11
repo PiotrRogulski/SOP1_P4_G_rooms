@@ -3,8 +3,8 @@
 
 #define SET_GAME_MODE(mode) setenv("IS_GAME_MODE", #mode, 1)
 
-void map_from_dir_tree(void);
-void generate_random_map(void);
+void map_from_dir_tree(char *cmd, WINDOW *win);
+void generate_random_map(char *cmd, WINDOW *win);
 void start_game(void);
 void load_game(void);
 

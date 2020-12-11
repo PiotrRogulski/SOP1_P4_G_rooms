@@ -5,8 +5,8 @@
 #include "game_funs.h"
 
 #define ERROR(source) (perror(source),\
-                     fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
-                     exit(EXIT_FAILURE))
+                       fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
+                       exit(EXIT_FAILURE))
 
 void parse_args(int argc, char **argv) {
     int c;
@@ -40,7 +40,7 @@ void set_backup(char *path) {
             ERROR("Couldn't set GAME_AUTOSAVE");
 }
 
-int exec_command(char *cmd, WINDOW *mainWin) {
+int exec_command(char *cmd, WINDOW *win) {
     char *isGameModeStr = getenv("IS_GAME_MODE");
     int isGameMode = 1;
     if (isGameModeStr == NULL || atoi(isGameModeStr) == 0)
@@ -50,58 +50,54 @@ int exec_command(char *cmd, WINDOW *mainWin) {
 
     if (isGameMode) {
         if (firstSpace == NULL) {
-            if (strcmp(cmd, "quit") != 0) {
+            if (strncmp(cmd, "quit", 4) != 0) {
                 return INVALID_CMD;
             }
+            quit();
             return QUIT_CMD;
         }
-        *firstSpace = 0;
-        char *args = firstSpace + 1;
 
-        if (strcmp(cmd, "move-to") == 0) {
+        if (strncmp(cmd, "move-to", 7) == 0) {
             move_to();
             return OK_CMD;
         }
-        if (strcmp(cmd, "pick-up") == 0) {
+        if (strncmp(cmd, "pick-up", 7) == 0) {
             pick_up();
             return OK_CMD;
         }
-        if (strcmp(cmd, "drop") == 0) {
+        if (strncmp(cmd, "drop", 4) == 0) {
             drop();
             return OK_CMD;
         }
-        if (strcmp(cmd, "save") == 0) {
+        if (strncmp(cmd, "save", 4) == 0) {
             save();
             return OK_CMD;
         }
-        if (strcmp(cmd, "find-path") == 0) {
+        if (strncmp(cmd, "find-path", 9) == 0) {
             find_path();
             return OK_CMD;
         }
     } else { // in menu
         if (firstSpace == NULL) {
-            if (strcmp(cmd, "exit") != 0) {
+            if (strncmp(cmd, "exit", 4) != 0) {
                 return INVALID_CMD;
             }
             return EXIT_CMD;
         }
-        *firstSpace = 0;
-        char *args = firstSpace + 1;
-        system("touch ./test");
 
-        if (strcmp(cmd, "map-from-dir-tree") == 0) {
-            map_from_dir_tree();
+        if (strncmp(cmd, "map-from-dir-tree", 17) == 0) {
+            map_from_dir_tree(cmd, win);
             return OK_CMD;
         }
-        if (strcmp(cmd, "generate-random-map") == 0) {
-            generate_random_map();
+        if (strncmp(cmd, "generate-random-map", 19) == 0) {
+            generate_random_map(cmd, win);
             return OK_CMD;
         }
-        if (strcmp(cmd, "start-game") == 0) {
+        if (strncmp(cmd, "start-game", 10) == 0) {
             start_game();
             return OK_CMD;
         }
-        if (strcmp(cmd, "load-game") == 0) {
+        if (strncmp(cmd, "load-game", 9) == 0) {
             load_game();
             return OK_CMD;
         }
