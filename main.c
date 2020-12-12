@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
 
     char buf[maxX];
     int isEnd = 0;
+    gameState_t game;
     while (!isEnd) {
         char* isGameMode = getenv("IS_GAME_MODE");
         if (isGameMode == NULL || atoi(isGameMode) == 0)
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
         if (memset(buf, 0, maxX) == NULL)
             ERROR("Couldn't set buffer");
         wgetstr(cmdWin, buf);
-        int ret = exec_command(buf, mainWin);
+        int ret = exec_command(buf, mainWin, &game);
         if (ret == INVALID_CMD)
             continue;
         switch (ret) {

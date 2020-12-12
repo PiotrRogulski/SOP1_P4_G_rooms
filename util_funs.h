@@ -1,5 +1,6 @@
 #include <linux/limits.h>
 #include <ncurses.h>
+#include "game_funs.h"
 
 #define INVALID_CMD -1
 #define OK_CMD       0
@@ -30,4 +31,4 @@ void parse_args(int argc, char **argv);
 
 void set_backup(char *path);
 
-int exec_command(char *cmd, WINDOW *win);
+int exec_command(char *cmd, WINDOW *win, gameState_t *game);

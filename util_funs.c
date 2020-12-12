@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "util_funs.h"
-#include "game_funs.h"
 
 #define ERROR(source) (perror(source),\
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
@@ -40,7 +39,7 @@ void set_backup(char *path) {
             ERROR("Couldn't set GAME_AUTOSAVE");
 }
 
-int exec_command(char *cmd, WINDOW *win) {
+int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
     char *isGameModeStr = getenv("IS_GAME_MODE");
     int isGameMode = 1;
     if (isGameModeStr == NULL || atoi(isGameModeStr) == 0)
@@ -94,7 +93,7 @@ int exec_command(char *cmd, WINDOW *win) {
             return OK_CMD;
         }
         if (strncmp(cmd, "start-game", 10) == 0) {
-            start_game();
+            start_game(cmd, win, game);
             return OK_CMD;
         }
         if (strncmp(cmd, "load-game", 9) == 0) {
