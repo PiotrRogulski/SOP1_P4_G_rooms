@@ -52,7 +52,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             if (strncmp(cmd, "quit", 4) != 0) {
                 return INVALID_CMD;
             }
-            quit();
+            quit(game);
             return QUIT_CMD;
         }
 

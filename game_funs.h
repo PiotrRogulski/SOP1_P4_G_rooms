@@ -11,7 +11,8 @@ typedef struct object {
 
 typedef struct room {
     int id;
-    object_t *objects;
+    object_t *objects[2];
+    int num_objects;
 } room_t;
 
 typedef struct gameState {
@@ -32,4 +33,4 @@ void pick_up(void);
 void drop(void);
 void save(void);
 void find_path(void);
-void quit(void);
+void quit(gameState_t *game);

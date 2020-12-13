@@ -18,6 +18,7 @@
                        exit(EXIT_FAILURE))
 
 int main(int argc, char **argv) {
+    srand(time(NULL));
     parse_args(argc, argv);
 
     initscr();

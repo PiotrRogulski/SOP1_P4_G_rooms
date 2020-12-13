@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -fanalyzer
+CFLAGS = -Wall -Wextra -pedantic# -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
 LIBS = -lpthread -lncurses -lm
 DEFINES = -D_GNU_SOURCE -D_XOPEN_SOURCE=500
 OBJS = util_funs.o game_funs.o

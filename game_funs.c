@@ -17,8 +17,10 @@
 
 int walk_print(const char *name, const struct stat *s, int type, struct FTW *f) {
     UNUSED(s);
-    UNUSED(type);
     UNUSED(f);
+
+    if (type != FTW_D)
+        return 0;
 
     int id = open("/tmp/dir_tree.txt", O_WRONLY | O_CREAT | O_APPEND, 0777);
     write(id, name, strlen(name));
@@ -37,9 +39,39 @@ void map_from_dir_tree(char* cmd, WINDOW *win) {
         ERROR("Couldn't remove existing file");
     if (nftw(dirPath, walk_print, MAXFD, FTW_PHYS) < 0)
         ERROR("Couldn't walk the directory tree");
+
+    int n = 0;
+    int f = open("/tmp/dir_tree.txt", O_RDONLY);
+    if (f < 0)
+        ERROR("Couldn't open /tmp/dir_tree.txt");
+    char c;
+    int r;
+    while ((r = read(f, &c, 1)) != 0 && r != -1)
+        if (c == '\n')
+            n++;
+
+    char *map = calloc(n*n + 1, sizeof(char));
+
+    struct stat *s = malloc(sizeof(struct stat));
+    if (stat("/tmp/dir_tree.txt", s) != 0)
+        ERROR("Couldn't get info about /tmp/dir_tree.txt");
+
+    char tree[s->st_size + 1];
+
+    lseek(f, 0, SEEK_SET);
+    read(f, tree, s->st_size);
+
+    mvwprintw(win, 1, 1, "%s", tree);
+    wrefresh(win);
+
+    close(f);
+    free(s);
+    free(map);
 }
 
 void generate_random_map(char *cmd, WINDOW *win) {
+    UNUSED(win);
+
     unsigned n;
     char filePath[strlen(cmd)];
     if (sscanf(cmd, "generate-random-map %u %s", &n, filePath) <= 0)
@@ -48,16 +80,13 @@ void generate_random_map(char *cmd, WINDOW *win) {
     if (n > 8 * sizeof(unsigned long long))
         return;
 
-    char *tab = malloc((n*n + 1) * sizeof(char));
+    char *tab = calloc(n*n + 1, sizeof(char));
     if (tab == NULL)
         ERROR("Couldn't allocate memory for the graph");
-    if (memset(tab, 48, n*n) == NULL)
-        ERROR("Couldn't set matrix to zeros");
     tab[n*n] = '\n';
     unsigned long long used_rooms_mask = 0;
     int prev, curr, next;
 
-    srand(time(NULL));
     prev = -1;
     curr = rand() % n;
     while (used_rooms_mask != pow(2, n) - 1) {
@@ -88,6 +117,8 @@ void generate_random_map(char *cmd, WINDOW *win) {
 }
 
 void start_game(char *cmd, WINDOW *win, gameState_t *game) {
+    UNUSED(win);
+
     SET_GAME_MODE(1);
     char path[strlen(cmd)];
     if (sscanf(cmd, "start-game %s", path) <= 0)
@@ -103,18 +134,18 @@ void start_game(char *cmd, WINDOW *win, gameState_t *game) {
     int n = atoi(nBuf);
 
     game->n = n;
+    game->playerPosition = rand() % n;
     if ((game->roomsMap = malloc((n*n + 1) * sizeof(char))) == NULL)
         ERROR("Couldn't allocate memory");
     if (read(fileDes, game->roomsMap, n*n + 1) <= 0)
         ERROR("Couldn't read room map");
 
-    if ((game->rooms = malloc(n * sizeof(room_t))) == NULL)
+    if ((game->rooms = calloc(n, sizeof(room_t))) == NULL)
         ERROR("Couldn't allocate rooms");
 
     for (int i = 0; i < n; i++) {
         game->rooms[i].id = i;
-        if (game->rooms[i].objects = malloc(2 * sizeof(object_t)))
-            ERROR("Couldn't allocate room objects");
+        game->rooms[i].num_objects = 0;
     }
 }
 
@@ -145,8 +176,11 @@ void find_path(void) {
     // TODO: implement
 }
 
-void quit(void) {
+void quit(gameState_t *game) {
     SET_GAME_MODE(0);
+
+    free(game->rooms);
+    free(game->roomsMap);
     // TODO: implement
 }
 
