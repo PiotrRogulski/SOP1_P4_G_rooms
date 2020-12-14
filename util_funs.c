@@ -39,7 +39,7 @@ void set_backup(char *path) {
             ERROR("Couldn't set GAME_AUTOSAVE");
 }
 
-int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
+int exec_command(char *cmd, WINDOW *win, pthread_mutex_t *winMutex, gameState_t *game) {
     char *isGameModeStr = getenv("IS_GAME_MODE");
     int isGameMode = 1;
     if (isGameModeStr == NULL || atoi(isGameModeStr) == 0)
@@ -52,12 +52,12 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             if (strncmp(cmd, "quit", 4) != 0) {
                 return INVALID_CMD;
             }
-            quit(game);
+            quit(game, win);
             return QUIT_CMD;
         }
 
         if (strncmp(cmd, "move-to", 7) == 0) {
-            move_to();
+            move_to(cmd, win, game);
             return OK_CMD;
         }
         if (strncmp(cmd, "pick-up", 7) == 0) {
@@ -104,3 +104,41 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
 
     return INVALID_CMD;
 }
+
+// void show_error(char *msg, WINDOW *win, pthread_mutex_t *winMutex) {
+//     pthread_t tid;
+//     errorInfo_t *error = calloc(1, sizeof(errorInfo_t));
+//     strcpy(error->error, msg);
+//     error->winMutex = winMutex;
+//     error->win = win;
+//     if (pthread_create(&tid, NULL, show_error_work, error)) {
+//         ERROR("Cannot create thread");
+//     }
+//     pthread_detach(tid);
+// }
+
+// void *show_error_work(void *voidArgs) {
+//     errorInfo_t *args = voidArgs;
+//     char *error = args->error;
+//     pthread_mutex_t *winMutex = args->winMutex;
+//     WINDOW *win = args->win;
+
+//     timespec_t t = { 3, 0 };
+//     pthread_mutex_lock(winMutex);
+//     wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+//     wrefresh(win);
+//     mvwprintw(win, 0, 2, " %s ", error);
+//     wrefresh(win);
+//     pthread_mutex_unlock(winMutex);
+
+//     if (nanosleep(&t, NULL))
+//         ERROR("Couldn't sleep");
+
+//     pthread_mutex_lock(winMutex);
+//     wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+//     wrefresh(win);
+//     pthread_mutex_unlock(winMutex);
+
+//     free(args);
+//     return NULL;
+// }

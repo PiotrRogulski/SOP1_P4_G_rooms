@@ -117,8 +117,6 @@ void generate_random_map(char *cmd, WINDOW *win) {
 }
 
 void start_game(char *cmd, WINDOW *win, gameState_t *game) {
-    UNUSED(win);
-
     SET_GAME_MODE(1);
     char path[strlen(cmd)];
     if (sscanf(cmd, "start-game %s", path) <= 0)
@@ -145,8 +143,30 @@ void start_game(char *cmd, WINDOW *win, gameState_t *game) {
 
     for (int i = 0; i < n; i++) {
         game->rooms[i].id = i;
-        game->rooms[i].num_objects = 0;
     }
+
+    int num_objects_generated = 0;
+    object_t *obj;
+    while (num_objects_generated < floor(3 * n / 2)) {
+        obj = malloc(sizeof(object_t));
+        obj->id = num_objects_generated++;
+        int existing_room_id;
+        int assigned_room_id;
+        do {
+            existing_room_id = rand() % n;
+        } while (game->rooms[existing_room_id].num_existing_objects == 2);
+        do {
+            assigned_room_id = rand() % n;
+        } while (game->rooms[assigned_room_id].num_assigned_objects == 2);
+        obj->assigned_room = assigned_room_id;
+        game->rooms[existing_room_id].objects[game->rooms[existing_room_id].num_existing_objects++] = obj;
+        game->rooms[assigned_room_id].num_assigned_objects++;
+    }
+
+    print_table(game->roomsMap, n, win);
+    print_curr_room(game->playerPosition, n, win);
+    print_objects(game, win);
+    wrefresh(win);
 }
 
 void load_game(void) {
@@ -156,8 +176,27 @@ void load_game(void) {
 
 
 
-void move_to(void) {
-    // TODO: implement
+void move_to(char *cmd, WINDOW *win, gameState_t *game) {
+    unsigned x;
+    unsigned curr = game->playerPosition;
+    unsigned n = game->n;
+    if (sscanf(cmd, "move-to %u", &x) <= 0)
+        return;
+
+    wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    if (x < n && game->roomsMap[x * n + curr] == '1') {
+        game->playerPosition = x;
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 9, " Moved to room %u ", x);
+        print_curr_room(x, n, win);
+    } else if (x >= n) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Room %u doesn't exist ", x);
+    } else {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Cannot move to room %u ", x);
+
+    }
+
+    wrefresh(win);
 }
 
 void pick_up(void) {
@@ -176,11 +215,67 @@ void find_path(void) {
     // TODO: implement
 }
 
-void quit(gameState_t *game) {
+void quit(gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(0);
+
+    for (unsigned i = 0; i < game->n; i++) {
+        for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++) {
+            free(game->rooms[i].objects[j]);
+        }
+    }
+
 
     free(game->rooms);
     free(game->roomsMap);
+
+    werase(win);
+    wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+    wrefresh(win);
     // TODO: implement
 }
 
+
+
+void print_table(char *table, unsigned n, WINDOW *win) {
+    for (unsigned i = 0; i < n; i++) {
+        mvwprintw(win, 3, 7 + 3*i, "%-2u", i);
+        mvwprintw(win, 7 + 2*i, 2, "%2u", i);
+    }
+
+    mvwhline(win, 5, 2, ACS_HLINE, 5 + 3*n);
+    mvwvline(win, 2, 5, ACS_VLINE, 5 + 2*n);
+    mvwaddch(win, 5, 5, ACS_PLUS);
+
+    for (unsigned i = 0; i < n; i++) {
+        for (unsigned j = 0; j < n; j++) {
+            if (table[i * n + j] == '1')
+                wattron(win, COLOR_PAIR(2));
+            else
+                wattron(win, COLOR_PAIR(1));
+            mvwaddch(win, 7 + 2*i, 7 + 3*j, ACS_BLOCK);
+        }
+    }
+    wattroff(win, A_BOLD | COLOR_PAIR(1) | COLOR_PAIR(2));
+}
+
+void print_curr_room(unsigned curr, unsigned n, WINDOW *win) {
+    mvwprintw(win, 9 + 2*n, 17, "  ");
+    mvwprintw(win, 9 + 2*n, 3, "Current room: %u", curr);
+}
+
+void print_objects(gameState_t *game, WINDOW *win) {
+    unsigned n = game->n;
+    unsigned lines_printed = 0;
+
+    mvwprintw(win, 3, 12 + 3*n, "Objects in the game: ");
+    for (unsigned i = 0; i < n; i++) {
+        if (game->rooms[i].num_existing_objects == 0)
+            continue;
+        mvwprintw(win, 5 + lines_printed, 14 + 3*n, "%2u:", i);
+        lines_printed++;
+        for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++) {
+            mvwprintw(win, 5 + lines_printed, 17 + 3*n, "id: %-2u assigned to %u", game->rooms[i].objects[j]->id, game->rooms[i].objects[j]->assigned_room);
+            lines_printed++;
+        }
+    }
+}
