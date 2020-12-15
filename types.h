@@ -34,6 +34,8 @@ typedef struct gameState {
     char *roomsMap;
     room_t *rooms;
     unsigned playerPosition;
+    object_t *player_objects[2];
+    unsigned num_player_objects;
     unsigned n;
 } gameState_t;
 

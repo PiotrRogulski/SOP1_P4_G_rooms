@@ -61,7 +61,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
         if (strncmp(cmd, "pick-up", 7) == 0) {
-            pick_up();
+            pick_up(cmd, game, win);
             return OK_CMD;
         }
         if (strncmp(cmd, "drop", 4) == 0) {

@@ -133,6 +133,7 @@ void start_game(char *cmd, WINDOW *win, gameState_t *game) {
 
     game->n = n;
     game->playerPosition = rand() % n;
+    game->num_player_objects = 0;
     if ((game->roomsMap = malloc((n*n + 1) * sizeof(char))) == NULL)
         ERROR("Couldn't allocate memory");
     if (read(fileDes, game->roomsMap, n*n + 1) <= 0)
@@ -163,10 +164,7 @@ void start_game(char *cmd, WINDOW *win, gameState_t *game) {
         game->rooms[assigned_room_id].num_assigned_objects++;
     }
 
-    print_table(game->roomsMap, n, win);
-    print_curr_room(game->playerPosition, n, win);
-    print_objects(game, win);
-    wrefresh(win);
+    print_game(game, win);
 }
 
 void load_game(void) {
@@ -199,8 +197,41 @@ void move_to(char *cmd, WINDOW *win, gameState_t *game) {
     wrefresh(win);
 }
 
-void pick_up(void) {
-    // TODO: implement
+void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
+    unsigned y;
+    if (sscanf(cmd, "pick-up %u", &y) <= 0)
+        return;
+
+    if (game->num_player_objects == 2) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Cannot pick up object: inventory full ");
+        wrefresh(win);
+        return;
+    }
+
+    object_t *obj = NULL;
+    unsigned i;
+    for (i = 0; i < game->rooms[game->playerPosition].num_existing_objects; i++) {
+        if (game->rooms[game->playerPosition].objects[i]->id == y) {
+            obj = game->rooms[game->playerPosition].objects[i];
+            break;
+        }
+    }
+
+    if (obj == NULL) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Object with id %u doesn't exist here ", y);
+        wrefresh(win);
+        return;
+    }
+
+    if (i == 0)
+        game->rooms[game->playerPosition].objects[0] = game->rooms[game->playerPosition].objects[1];
+
+    game->rooms[game->playerPosition].objects[1] = NULL;
+    game->rooms[game->playerPosition].num_existing_objects--;
+    game->player_objects[game->num_player_objects++] = obj;
+
+    print_game(game, win);
+    wrefresh(win);
 }
 
 void drop(void) {
@@ -224,6 +255,8 @@ void quit(gameState_t *game, WINDOW *win) {
         }
     }
 
+    for (unsigned i = 0; i < game->num_player_objects; i++)
+        free(game->player_objects[i]);
 
     free(game->rooms);
     free(game->roomsMap);
@@ -231,10 +264,21 @@ void quit(gameState_t *game, WINDOW *win) {
     werase(win);
     wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
     wrefresh(win);
-    // TODO: implement
 }
 
 
+
+void print_game(gameState_t *game, WINDOW *win) {
+    werase(win);
+    wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    print_table(game->roomsMap, game->n, win);
+    print_curr_room(game->playerPosition, game->n, win);
+    print_objects(game, win);
+    print_inventory(game, win);
+
+    wrefresh(win);
+}
 
 void print_table(char *table, unsigned n, WINDOW *win) {
     for (unsigned i = 0; i < n; i++) {
@@ -278,4 +322,17 @@ void print_objects(gameState_t *game, WINDOW *win) {
         }
         lines_printed++;
     }
+}
+
+void print_inventory(gameState_t *game, WINDOW *win) {
+    unsigned n = game->n;
+
+    mvwprintw(win, 11 + 2*n, 3, "Player's inventory:");
+    if (game->num_player_objects == 0) {
+        mvwprintw(win, 12 + 2*n, 7, "EMPTY");
+    } else {
+        for (unsigned int i = 0; i < game->num_player_objects; i++)
+            mvwprintw(win, 12 + 2*n + i, 7, "%-2u assigned to %u", game->player_objects[i]->id, game->player_objects[i]->assigned_room);
+    }
+    wrefresh(win);
 }
