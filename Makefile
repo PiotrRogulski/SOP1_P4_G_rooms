@@ -16,8 +16,8 @@ main: main.c $(OBJS)
 clean:
 	-rm -f main $(OBJS)
 
-tar%: main
-	-tar czf $(ARCHIVE_NAME)$(*).tar.gz Makefile *.c *.h
+tar: main
+	-tar czf $(ARCHIVE_NAME).tar.gz Makefile *.c *.h
 
-push%: tar%
-	-scp $(ARCHIVE_NAME)$(*).tar.gz $(DESTINATION)
+push: tar
+	-scp $(ARCHIVE_NAME).tar.gz $(DESTINATION)
