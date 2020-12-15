@@ -65,7 +65,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
         if (strncmp(cmd, "drop", 4) == 0) {
-            drop();
+            drop(cmd, game, win);
             return OK_CMD;
         }
         if (strncmp(cmd, "save", 4) == 0) {
@@ -73,7 +73,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
         if (strncmp(cmd, "find-path", 9) == 0) {
-            find_path();
+            find_path(cmd, game, win);
             return OK_CMD;
         }
     } else { // in menu

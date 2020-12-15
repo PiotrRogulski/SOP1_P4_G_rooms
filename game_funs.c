@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "game_funs.h"
+#include "types.h"
 
 #define ERROR(source) (perror(source),\
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
@@ -234,16 +235,133 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     wrefresh(win);
 }
 
-void drop(void) {
-    // TODO: implement
+void drop(char *cmd, gameState_t *game, WINDOW *win) {
+    unsigned pos = game->playerPosition;
+
+    unsigned z;
+    if (sscanf(cmd, "drop %u", &z) <= 0)
+        return;
+
+    if (game->num_player_objects == 0) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 9, " Empty inventory ");
+        wrefresh(win);
+        return;
+    }
+
+    object_t *obj = NULL;
+    unsigned i;
+    for (i = 0; i < game->num_player_objects; i++) {
+        if (game->player_objects[i]->id == z) {
+            obj = game->player_objects[i];
+            break;
+        }
+    }
+
+    if (obj == NULL) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 19, " Object with id %u not in inventory ", z);
+        wrefresh(win);
+        return;
+    }
+
+    if (game->rooms[pos].num_existing_objects == 2) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 17, " Aleady two objects in this room ");
+        wrefresh(win);
+        return;
+    }
+
+    if (i == 0) {
+        game->player_objects[0] = game->player_objects[1];
+    }
+
+    game->player_objects[1] = NULL;
+    game->num_player_objects--;
+    game->rooms[pos].objects[game->rooms[pos].num_existing_objects++] = obj;
+
+    print_game(game, win);
+    wrefresh(win);
 }
 
 void save(void) {
     // TODO: implement
 }
 
-void find_path(void) {
-    // TODO: implement
+void find_path(char *cmd, gameState_t *game, WINDOW *win) {
+    unsigned k, x;
+
+    if (sscanf(cmd, "find-path %u %u", &k, &x) <= 0)
+        return;
+
+    pthread_t tids[k];
+    pathFind_t args[k];
+
+    for (unsigned i = 0; i < k; i++) {
+        args[i].game = game;
+        args[i].seed = rand();
+        args[i].destination = x;
+        if (pthread_create(&tids[i], NULL, find_path_worker, &args[i]))
+            ERROR("Couldn't create worker thread");
+    }
+
+    for (unsigned i = 0; i < k; i++)
+        if (pthread_join(tids[i], NULL))
+            ERROR("Couldn't join worker thread");
+
+    unsigned shortest_id = 0;
+    unsigned shortest_length = args[0].length;
+
+    for (unsigned i = 1; i < k; i++) {
+        if (args[i].length < shortest_length) {
+            shortest_length = args[i].length;
+            shortest_id = i;
+        }
+    }
+
+    print_game(game, win);
+
+    if (shortest_length == 2000) {
+        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 11, " Couldn't find a path ");
+        wrefresh(win);
+        for (unsigned i = 0; i < k; i++)
+            free(args[i].path);
+        return;
+    }
+
+    mvwprintw(win, getmaxy(win) - 3, 2, "Found path from %u to %u: ", game->playerPosition, x);
+    for (unsigned i = 0; i < shortest_length; i++)
+        mvwprintw(win, getmaxy(win) - 3, 35 + 3*i, "%2u ", args[shortest_id].path[i]);
+    wrefresh(win);
+
+    for (unsigned i = 0; i < k; i++)
+        free(args[i].path);
+}
+
+void *find_path_worker(void *voidArgs) {
+    pathFind_t *args = voidArgs;
+
+    gameState_t *game = args->game;
+    unsigned n = game->n;
+    unsigned seed = args->seed;
+    unsigned length = 0;
+    unsigned curr = game->playerPosition;
+    unsigned destination = args->destination;
+    unsigned *path;
+
+    if ((path = malloc(1000 * sizeof(unsigned))) == NULL)
+        ERROR("Couldn't allocate path");
+
+    while (curr != destination && length < 1000) {
+        unsigned next;
+        do {
+            next = rand_r(&seed) % n;
+        } while (game->roomsMap[next * n + curr] == '0');
+        path[length++] = next;
+        curr = next;
+    }
+
+    args->length = (curr == destination ? length : 2000);
+    args->path = path;
+
+    return NULL;
 }
 
 void quit(gameState_t *game, WINDOW *win) {

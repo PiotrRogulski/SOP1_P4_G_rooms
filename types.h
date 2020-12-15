@@ -40,3 +40,11 @@ typedef struct gameState {
 } gameState_t;
 
 typedef struct timespec timespec_t;
+
+typedef struct pathFind {
+    gameState_t *game;
+    unsigned seed;
+    unsigned *path;
+    unsigned destination;
+    unsigned length;
+} pathFind_t;

@@ -17,9 +17,10 @@ void load_game(void);
 
 void move_to(char *cmd, WINDOW *win, gameState_t *game);
 void pick_up(char *cmd, gameState_t *game, WINDOW *win);
-void drop(void);
+void drop(char *cmd, gameState_t *game, WINDOW *win);
 void save(void);
-void find_path(void);
+void find_path(char *cmd, gameState_t *game, WINDOW *win);
+void *find_path_worker(void *voidArgs);
 void quit(gameState_t *game, WINDOW *win);
 
 void print_game(gameState_t *game, WINDOW *win);
