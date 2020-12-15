@@ -272,10 +272,10 @@ void print_objects(gameState_t *game, WINDOW *win) {
         if (game->rooms[i].num_existing_objects == 0)
             continue;
         mvwprintw(win, 5 + lines_printed, 14 + 3*n, "%2u:", i);
-        lines_printed++;
         for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++) {
-            mvwprintw(win, 5 + lines_printed, 17 + 3*n, "id: %-2u assigned to %u", game->rooms[i].objects[j]->id, game->rooms[i].objects[j]->assigned_room);
+            mvwprintw(win, 5 + lines_printed, 20 + 3*n, "%-2u assigned to %u", game->rooms[i].objects[j]->id, game->rooms[i].objects[j]->assigned_room);
             lines_printed++;
         }
+        lines_printed++;
     }
 }

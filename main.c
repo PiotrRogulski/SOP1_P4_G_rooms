@@ -34,8 +34,6 @@ int main(int argc, char **argv) {
     WINDOW *mainWin = newwin(maxY - 3, maxX, 0, 0);
     WINDOW *cmdWin = newwin(3, maxX, maxY - 3, 0);
 
-    pthread_mutex_t mainWinMutex = PTHREAD_MUTEX_INITIALIZER;
-
     wborder(mainWin, 0, 0, 0, 0, 0, 0, 0, 0);
     wborder(cmdWin, 0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -59,7 +57,7 @@ int main(int argc, char **argv) {
         if (memset(buf, 0, maxX) == NULL)
             ERROR("Couldn't set buffer");
         wgetstr(cmdWin, buf);
-        int ret = exec_command(buf, mainWin, &mainWinMutex, &game);
+        int ret = exec_command(buf, mainWin, &game);
         if (ret == INVALID_CMD)
             continue;
         switch (ret) {

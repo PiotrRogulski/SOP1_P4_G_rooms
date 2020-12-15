@@ -16,8 +16,4 @@ void parse_args(int argc, char **argv);
 
 void set_backup(char *path);
 
-int exec_command(char *cmd, WINDOW *win, pthread_mutex_t *winMutex, gameState_t *game);
-
-// void show_error(char *msg, WINDOW *win, pthread_mutex_t *winMutex);
-
-// void *show_error_work(void *voidArgs);
+int exec_command(char *cmd, WINDOW *win, gameState_t *game);

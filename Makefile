@@ -3,6 +3,8 @@ CFLAGS = -Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-om
 LIBS = -lpthread -lncurses -lm
 DEFINES = -D_GNU_SOURCE -D_XOPEN_SOURCE=500
 OBJS = util_funs.o game_funs.o
+ARCHIVE_NAME = rogulskip
+DESTINATION = rogulskip@ssh.mini.pw.edu.pl:/home2/samba/sobotkap/unix
 
 main: main.c $(OBJS)
 	$(CC) -o $@ $< $(OBJS) $(CFLAGS) $(LIBS) $(DEFINES)
@@ -14,8 +16,8 @@ main: main.c $(OBJS)
 clean:
 	-rm -f main $(OBJS)
 
-tar%: all
-	-tar czf $(ARCHIVE_NAME)$(*).tar.gz Makefile *.c
+tar%: main
+	-tar czf $(ARCHIVE_NAME)$(*).tar.gz Makefile *.c *.h
 
 push%: tar%
-	-scp $(ARCHIVE_NAME)$(*).tar.gz rogulskip@ssh.mini.pw.edu.pl:/home2/samba/sobotkap/unix
+	-scp $(ARCHIVE_NAME)$(*).tar.gz $(DESTINATION)
