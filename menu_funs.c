@@ -27,6 +27,10 @@ int walk_print(const char *name, const struct stat *s, int type, struct FTW *f) 
     return 0;
 }
 
+/**
+ * Creates a map from files in the specified directory
+ * Not finished yet
+ */
 void map_from_dir_tree(char* cmd, WINDOW *win) {
     char dirPath[strlen(cmd)];
     char filePath[strlen(cmd)];
@@ -68,6 +72,9 @@ void map_from_dir_tree(char* cmd, WINDOW *win) {
     free(map);
 }
 
+/**
+ * Generates a random connected graph of size n
+ */
 void generate_random_map(char *cmd, WINDOW *win) {
     UNUSED(win);
 
@@ -110,6 +117,9 @@ void generate_random_map(char *cmd, WINDOW *win) {
     close(fileDes);
 }
 
+/**
+ * Initializes the game structure woth random objects on a given map
+ */
 void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
     char path[strlen(cmd)];
@@ -162,6 +172,9 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     print_game(game, win);
 }
 
+/**
+ * Loads a saved game from a file
+ */
 void load_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
     char path[strlen(cmd)];

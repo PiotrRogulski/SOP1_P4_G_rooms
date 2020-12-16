@@ -22,6 +22,9 @@ void print_game(gameState_t *game, WINDOW *win) {
     wrefresh(win);
 }
 
+/**
+ * Prints connections between the rooms
+ */
 void print_table(char *table, unsigned n, WINDOW *win) {
     for (unsigned i = 0; i < n; i++) {
         mvwprintw(win, 3, 7 + 3*i, "%-2u", i);
@@ -38,17 +41,23 @@ void print_table(char *table, unsigned n, WINDOW *win) {
                 wattron(win, COLOR_PAIR(2));
             else
                 wattron(win, COLOR_PAIR(1));
-            mvwaddch(win, 7 + 2*i, 7 + 3*j, ACS_BLOCK);
+            mvwaddch(win, 7 + 2*i, 7 + 3*j, ' ');
         }
     }
-    wattroff(win, A_BOLD | COLOR_PAIR(1) | COLOR_PAIR(2));
+    wattroff(win, COLOR_PAIR(1) | COLOR_PAIR(2));
 }
 
+/**
+ * Print current position of the player
+ */
 void print_curr_room(unsigned curr, unsigned n, WINDOW *win) {
     mvwprintw(win, 9 + 2*n, 17, "  ");
     mvwprintw(win, 9 + 2*n, 3, "Current room: %u", curr);
 }
 
+/**
+ * Prints objects in each room
+ */
 void print_objects(gameState_t *game, WINDOW *win) {
     unsigned n = game->n;
     unsigned lines_printed = 0;
@@ -69,6 +78,9 @@ void print_objects(gameState_t *game, WINDOW *win) {
     }
 }
 
+/**
+ * Prints objects in player's inventory
+ */
 void print_inventory(gameState_t *game, WINDOW *win) {
     unsigned n = game->n;
 

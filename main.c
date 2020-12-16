@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <linux/limits.h>
-
 #include "util_funs.h"
 
 #define ERROR(source) (perror(source),\
@@ -21,13 +20,14 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     parse_args(argc, argv);
 
+    // Initialize curses
     initscr();
     start_color();
     echo();
     keypad(stdscr, TRUE);
 
-    init_pair(1, COLOR_RED, COLOR_BLACK);
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(1, COLOR_BLACK, COLOR_RED);
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);
 
     int maxY, maxX;
     getmaxyx(stdscr, maxY, maxX);
@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
     wrefresh(mainWin);
     wrefresh(cmdWin);
 
+    // Main program loop
     char buf[maxX];
-    int isEnd = 0;
     gameState_t game;
-    while (!isEnd) {
+    while (1) {
         char* isGameMode = getenv("IS_GAME_MODE");
         if (isGameMode == NULL || atoi(isGameMode) == 0)
             mvwprintw(cmdWin, 0, 2, " Mode: Menu ");
@@ -60,16 +60,12 @@ int main(int argc, char **argv) {
         int ret = exec_command(buf, mainWin, &game);
         if (ret == INVALID_CMD)
             continue;
-        switch (ret) {
-            case EXIT_CMD:
-                isEnd = 1;
-                break;
-            default:
-                break;
-        }
+        if (ret == EXIT_CMD)
+            break;
         wrefresh(cmdWin);
     }
 
+    // curses cleanup
     delwin(mainWin);
     delwin(cmdWin);
     endwin();

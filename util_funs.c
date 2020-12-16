@@ -7,6 +7,9 @@
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
                        exit(EXIT_FAILURE))
 
+/**
+ * Parse commandline options
+ */
 void parse_args(int argc, char **argv) {
     int c;
     char *arg = NULL;
@@ -27,6 +30,9 @@ void parse_args(int argc, char **argv) {
     free(arg);
 }
 
+/**
+ * Set the path to the backup file in the environment
+ */
 void set_backup(char *path) {
     if (path != NULL) {
         if (setenv("GAME_AUTOSAVE", path, 1))
@@ -39,6 +45,9 @@ void set_backup(char *path) {
             ERROR("Couldn't set GAME_AUTOSAVE");
 }
 
+/**
+ * Parse the command and run the selected function
+ */
 int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
     char *isGameModeStr = getenv("IS_GAME_MODE");
     int isGameMode = 1;
@@ -53,7 +62,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
                 return INVALID_CMD;
             }
             quit(game, win);
-            return QUIT_CMD;
+            return OK_CMD;
         }
 
         if (strncmp(cmd, "move-to", 7) == 0) {
