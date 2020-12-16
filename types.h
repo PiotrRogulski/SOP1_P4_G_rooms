@@ -3,21 +3,6 @@
 #include <pthread.h>
 #include <ncurses.h>
 
-typedef enum cmdType {
-    Map_from_dir_tree,
-    Generate_random_map,
-    Start_game,
-    Load_game,
-    Exit,
-
-    Move_to,
-    Pick_up,
-    Drop,
-    Save,
-    Find_path,
-    Quit,
-} cmdType_t;
-
 typedef struct object {
     unsigned id;
     unsigned assigned_room;
@@ -31,9 +16,9 @@ typedef struct room {
 } room_t;
 
 typedef struct gameState {
-    char *roomsMap;
+    char *rooms_map;
     room_t *rooms;
-    unsigned playerPosition;
+    unsigned player_position;
     object_t *player_objects[2];
     unsigned num_player_objects;
     unsigned n;
