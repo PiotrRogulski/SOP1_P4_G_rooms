@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
+CFLAGS = -Og -Wall -Wextra -pedantic -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
 LIBS = -lpthread -lncurses -lm
 DEFINES = -D_GNU_SOURCE -D_XOPEN_SOURCE=500
-OBJS = util_funs.o game_funs.o
+OBJS = util_funs.o menu_funs.o game_funs.o print_funs.o
 ARCHIVE_NAME = rogulskip
 DESTINATION = rogulskip@ssh.mini.pw.edu.pl:/home2/samba/sobotkap/unix
 

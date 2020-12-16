@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <time.h>
 #include "game_funs.h"
+#include "menu_funs.h"
 #include "types.h"
 
 #define INVALID_CMD -1

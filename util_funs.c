@@ -57,7 +57,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
         }
 
         if (strncmp(cmd, "move-to", 7) == 0) {
-            move_to(cmd, win, game);
+            move_to(cmd, game, win);
             return OK_CMD;
         }
         if (strncmp(cmd, "pick-up", 7) == 0) {
@@ -69,7 +69,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
         if (strncmp(cmd, "save", 4) == 0) {
-            save();
+            save(cmd, game, win);
             return OK_CMD;
         }
         if (strncmp(cmd, "find-path", 9) == 0) {
@@ -93,11 +93,11 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
         if (strncmp(cmd, "start-game", 10) == 0) {
-            start_game(cmd, win, game);
+            start_game(cmd, game, win);
             return OK_CMD;
         }
         if (strncmp(cmd, "load-game", 9) == 0) {
-            load_game();
+            load_game(cmd, game, win);
             return OK_CMD;
         }
     }

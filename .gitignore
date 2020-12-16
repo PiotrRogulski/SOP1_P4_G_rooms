@@ -54,4 +54,5 @@ dkms.conf
 main
 *.txt
 map*
+g*
 *.tar*
