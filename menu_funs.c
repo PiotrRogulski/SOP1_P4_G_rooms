@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 #include "menu_funs.h"
 #include "types.h"
 
@@ -27,10 +28,6 @@ int walk_print(const char *name, const struct stat *s, int type, struct FTW *f) 
     return 0;
 }
 
-/**
- * Creates a map from files in the specified directory
- * Not finished yet
- */
 void map_from_dir_tree(char* cmd, WINDOW *win) {
     char dirPath[strlen(cmd)];
     char filePath[strlen(cmd)];
@@ -72,9 +69,6 @@ void map_from_dir_tree(char* cmd, WINDOW *win) {
     free(map);
 }
 
-/**
- * Generates a random connected graph of size n
- */
 void generate_random_map(char *cmd, WINDOW *win) {
     UNUSED(win);
 
@@ -117,17 +111,11 @@ void generate_random_map(char *cmd, WINDOW *win) {
     close(fileDes);
 }
 
-/**
- * Initializes the game structure woth random objects on a given map
- */
 void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
     char path[strlen(cmd)];
     if (sscanf(cmd, "start-game %s", path) <= 0)
         return;
-
-    if (memset(game, 0, sizeof(gameState_t)) == NULL)
-        ERROR("Couldn't set memory");
 
     int fileDes;
     if ((fileDes = open(path, O_RDONLY)) < 0)
@@ -136,6 +124,8 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     unsigned n;
     if (read(fileDes, &n, sizeof(unsigned)) <= 0)
         ERROR("Couldn't read n from map file");
+
+    pthread_mutex_lock(game->game_mutex);
 
     game->n = n;
     game->player_position = rand() % n;
@@ -169,20 +159,21 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
         game->rooms[assigned_room_id].num_assigned_objects++;
     }
 
+    if (pthread_create(&game->auto_save_tid, NULL, auto_save_game, game))
+        ERROR("Couldn't create auto-save thread");
+    if (pthread_create(&game->alarm_generator_tid, NULL, alarm_generator, game))
+        ERROR("Couldn't create alarm thread");
+
+    pthread_mutex_unlock(game->game_mutex);
+
     print_game(game, win);
 }
 
-/**
- * Loads a saved game from a file
- */
 void load_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
     char path[strlen(cmd)];
     if (sscanf(cmd, "load-game %s", path) <= 0)
         return;
-
-    if (memset(game, 0, sizeof(gameState_t)) == NULL)
-        ERROR("Couldn't set memory");
 
     int f = open(path, O_RDONLY);
     if (f == -1)
@@ -191,6 +182,9 @@ void load_game(char *cmd, gameState_t *game, WINDOW *win) {
     unsigned n;
     if (read(f, &n, sizeof(unsigned)) <= 0)
         ERROR("Couldn't read n from file");
+
+    pthread_mutex_lock(game->game_mutex);
+
     game->n = n;
 
     if ((game->rooms_map = malloc(n*n * sizeof(char))) == NULL)
@@ -230,6 +224,14 @@ void load_game(char *cmd, gameState_t *game, WINDOW *win) {
                 ERROR("Couldn't read object");
     }
 
+    pthread_mutex_unlock(game->game_mutex);
+
+    if (pthread_create(&game->auto_save_tid, NULL, auto_save_game, game))
+        ERROR("Couldn't create auto-save thread");
+    if (pthread_create(&game->alarm_generator_tid, NULL, alarm_generator, game))
+        ERROR("Couldn't create alarm thread");
+
     print_game(game, win);
+
     close(f);
 }

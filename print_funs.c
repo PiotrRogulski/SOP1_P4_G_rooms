@@ -14,17 +14,18 @@ void print_game(gameState_t *game, WINDOW *win) {
     werase(win);
     wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
 
+    pthread_mutex_lock(game->game_mutex);
+
     print_table(game->rooms_map, game->n, win);
     print_curr_room(game->player_position, game->n, win);
     print_objects(game, win);
     print_inventory(game, win);
 
+    pthread_mutex_unlock(game->game_mutex);
+
     wrefresh(win);
 }
 
-/**
- * Prints connections between the rooms
- */
 void print_table(char *table, unsigned n, WINDOW *win) {
     for (unsigned i = 0; i < n; i++) {
         mvwprintw(win, 3, 7 + 3*i, "%-2u", i);
@@ -55,9 +56,6 @@ void print_curr_room(unsigned curr, unsigned n, WINDOW *win) {
     mvwprintw(win, 9 + 2*n, 3, "Current room: %u", curr);
 }
 
-/**
- * Prints objects in each room
- */
 void print_objects(gameState_t *game, WINDOW *win) {
     unsigned n = game->n;
     unsigned lines_printed = 0;
@@ -78,9 +76,6 @@ void print_objects(gameState_t *game, WINDOW *win) {
     }
 }
 
-/**
- * Prints objects in player's inventory
- */
 void print_inventory(gameState_t *game, WINDOW *win) {
     unsigned n = game->n;
 

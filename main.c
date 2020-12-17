@@ -42,9 +42,22 @@ int main(int argc, char **argv) {
     wrefresh(mainWin);
     wrefresh(cmdWin);
 
+    // Set up signals
+    sigset_t old_mask, new_mask;
+    sigemptyset(&new_mask);
+    sigaddset(&new_mask, SIGALRM);
+    sigaddset(&old_mask, SIGUSR1);
+    if (pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask))
+        ERROR("Couldn't set mask");
+
     // Main program loop
     char buf[maxX];
+    pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
     gameState_t game;
+    game.game_mutex = &game_mutex;
+    game.mask = &new_mask;
+    game.win = mainWin;
+    game.cmdWin = cmdWin;
     while (1) {
         char* isGameMode = getenv("IS_GAME_MODE");
         if (isGameMode == NULL || atoi(isGameMode) == 0)

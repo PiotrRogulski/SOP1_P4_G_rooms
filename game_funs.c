@@ -11,6 +11,8 @@
 #include "types.h"
 
 void move_to(char *cmd, gameState_t *game, WINDOW *win) {
+    pthread_mutex_lock(game->game_mutex);
+
     unsigned x;
     unsigned curr = game->player_position;
     unsigned n = game->n;
@@ -27,8 +29,9 @@ void move_to(char *cmd, gameState_t *game, WINDOW *win) {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Room %u doesn't exist ", x);
     } else {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Cannot move to room %u ", x);
-
     }
+
+    pthread_mutex_unlock(game->game_mutex);
 
     wrefresh(win);
 }
@@ -37,6 +40,8 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     unsigned y;
     if (sscanf(cmd, "pick-up %u", &y) <= 0)
         return;
+
+    pthread_mutex_lock(game->game_mutex);
 
     if (game->num_player_objects == 2) {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Cannot pick up object: inventory full ");
@@ -56,6 +61,7 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     if (obj == NULL) {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Object with id %u doesn't exist here ", y);
         wrefresh(win);
+        pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
@@ -67,10 +73,13 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     game->player_objects[game->num_player_objects++] = obj;
 
     print_game(game, win);
+    pthread_mutex_unlock(game->game_mutex);
     wrefresh(win);
 }
 
 void drop(char *cmd, gameState_t *game, WINDOW *win) {
+    pthread_mutex_lock(game->game_mutex);
+
     unsigned pos = game->player_position;
 
     unsigned z;
@@ -95,12 +104,14 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
     if (obj == NULL) {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 19, " Object with id %u not in inventory ", z);
         wrefresh(win);
+        pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
     if (game->rooms[pos].num_existing_objects == 2) {
         mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 17, " Already two objects in this room ");
         wrefresh(win);
+        pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
@@ -113,9 +124,12 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
     game->rooms[pos].objects[game->rooms[pos].num_existing_objects++] = obj;
 
     print_game(game, win);
+    pthread_mutex_unlock(game->game_mutex);
 }
 
 void save(char *cmd, gameState_t *game, WINDOW *win) {
+    pthread_mutex_lock(game->game_mutex);
+
     char path[strlen(cmd)];
     unsigned n = game->n;
 
@@ -151,8 +165,11 @@ void save(char *cmd, gameState_t *game, WINDOW *win) {
                 ERROR("Couldn't write object");
     }
 
+    pthread_kill(game->alarm_generator_tid, SIGALRM);
+
     close(f);
     print_game(game, win);
+    pthread_mutex_unlock(game->game_mutex);
 }
 
 void find_path(char *cmd, gameState_t *game, WINDOW *win) {
@@ -186,6 +203,8 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
         }
     }
 
+    pthread_mutex_lock(game->game_mutex);
+
     print_game(game, win);
 
     if (shortest_length == 2000) {
@@ -200,6 +219,8 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
     for (unsigned i = 0; i < shortest_length; i++)
         mvwprintw(win, getmaxy(win) - 3, 35 + 3*i, "%2u ", args[shortest_id].path[i]);
     wrefresh(win);
+
+    pthread_mutex_unlock(game->game_mutex);
 
     for (unsigned i = 0; i < k; i++)
         free(args[i].path);
@@ -221,9 +242,11 @@ void *find_path_worker(void *voidArgs) {
 
     while (curr != destination && length < 1000) {
         unsigned next;
+        pthread_mutex_lock(game->game_mutex);
         do {
             next = rand_r(&seed) % n;
         } while (game->rooms_map[next * n + curr] == 0);
+        pthread_mutex_unlock(game->game_mutex);
         path[length++] = next;
         curr = next;
     }
@@ -237,6 +260,8 @@ void *find_path_worker(void *voidArgs) {
 void quit(gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(0);
 
+    pthread_mutex_lock(game->game_mutex);
+
     for (unsigned i = 0; i < game->n; i++) {
         for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++) {
             free(game->rooms[i].objects[j]);
@@ -248,6 +273,13 @@ void quit(gameState_t *game, WINDOW *win) {
 
     free(game->rooms);
     free(game->rooms_map);
+
+    if (pthread_cancel(game->auto_save_tid))
+        ERROR("Couldn't cancel auto-save thread");
+    if (pthread_cancel(game->alarm_generator_tid))
+        ERROR("Couldn't cancel alarm generator");
+
+    pthread_mutex_unlock(game->game_mutex);
 
     werase(win);
     wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);

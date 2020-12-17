@@ -13,7 +13,19 @@
                        exit(EXIT_FAILURE))
 
 void print_game(gameState_t *game, WINDOW *win);
+
+/**
+ * Prints connections between the rooms
+ */
 void print_table(char *table, unsigned n, WINDOW *win);
+
+/**
+ * Prints objects in each room
+ */
 void print_curr_room(unsigned curr, unsigned n, WINDOW *win);
+
+/**
+ * Prints objects in player's inventory
+ */
 void print_objects(gameState_t *game, WINDOW *win);
 void print_inventory(gameState_t *game, WINDOW *win);

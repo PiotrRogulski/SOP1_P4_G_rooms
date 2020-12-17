@@ -2,12 +2,19 @@
 
 #include <pthread.h>
 #include <ncurses.h>
+#include <signal.h>
 
+/**
+ * Holds information about an object
+ */
 typedef struct object {
     unsigned id;
     unsigned assigned_room;
 } object_t;
 
+/**
+ * Holds information about a room (this includes objects in the room)
+ */
 typedef struct room {
     unsigned id;
     object_t *objects[2];
@@ -15,6 +22,9 @@ typedef struct room {
     unsigned num_assigned_objects;
 } room_t;
 
+/**
+ * Holds information about the state of the game and necessary thread info: thread IDs and mutexes
+ */
 typedef struct gameState {
     char *rooms_map;
     room_t *rooms;
@@ -22,10 +32,19 @@ typedef struct gameState {
     object_t *player_objects[2];
     unsigned num_player_objects;
     unsigned n;
+    sigset_t *mask;
+    pthread_mutex_t *game_mutex;
+    pthread_t auto_save_tid;
+    pthread_t alarm_generator_tid;
+    WINDOW *win;
+    WINDOW *cmdWin;
 } gameState_t;
 
 typedef struct timespec timespec_t;
 
+/**
+ * Data type for path finding worker threads
+ */
 typedef struct pathFind {
     gameState_t *game;
     unsigned seed;
