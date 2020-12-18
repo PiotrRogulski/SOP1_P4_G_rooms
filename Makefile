@@ -7,10 +7,10 @@ ARCHIVE_NAME = rogulskip
 DESTINATION = rogulskip@ssh.mini.pw.edu.pl:/home2/samba/sobotkap/unix
 
 main: main.c $(OBJS)
-	$(CC) -o $@ $< $(OBJS) $(CFLAGS) $(LIBS) $(DEFINES)
+	$(CC) -o $@ $< $(OBJS) $(CFLAGS) $(DEFINES) $(LIBS)
 
 %.o: %.c %.h
-	$(CC) -c $< $(CFLAGS) $(LIBS) $(DEFINES)
+	$(CC) -c $< $(CFLAGS) $(DEFINES) $(LIBS)
 
 .PHONY: clean
 clean:
