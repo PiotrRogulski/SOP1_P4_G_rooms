@@ -11,6 +11,7 @@
 #define ERROR(source) (perror(source),\
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
                        exit(EXIT_FAILURE))
+#define TRY(expr) if (expr) ERROR(#expr)
 #define UNUSED(x) (void)(x)
 #define SET_GAME_MODE(mode) setenv("IS_GAME_MODE", #mode, 1)
 

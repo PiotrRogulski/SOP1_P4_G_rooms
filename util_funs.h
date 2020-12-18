@@ -36,10 +36,17 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game);
  */
 void *alarm_generator(void *voidArgs);
 
+void *user_signal_catcher(void *voidArgs);
+
 /**
  * Runs in a seperate thread and autosaves the game upon every SIGALRM
  */
 void *auto_save_game(void *voidArgs);
+
+/**
+ * Swaps two random objects in the game upon every SIGUSR1
+ */
+void *swap_objects(void *voidArgs);
 
 /**
  * Thread cleanup handler for auto-save thread

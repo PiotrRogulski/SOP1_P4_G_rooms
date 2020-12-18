@@ -16,6 +16,8 @@
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
                        exit(EXIT_FAILURE))
 
+#define TRY(expr) if (expr) ERROR(#expr)
+
 int main(int argc, char **argv) {
     srand(time(NULL));
     parse_args(argc, argv);
@@ -46,18 +48,16 @@ int main(int argc, char **argv) {
     sigset_t old_mask, new_mask;
     sigemptyset(&new_mask);
     sigaddset(&new_mask, SIGALRM);
-    sigaddset(&old_mask, SIGUSR1);
-    if (pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask))
-        ERROR("Couldn't set mask");
+    sigaddset(&new_mask, SIGUSR1);
+    TRY(pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask));
 
     // Main program loop
     char buf[maxX];
     pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
     gameState_t game;
     game.game_mutex = &game_mutex;
-    game.mask = &new_mask;
     game.win = mainWin;
-    game.cmdWin = cmdWin;
+    game.swap_seed = rand();
     while (1) {
         char* isGameMode = getenv("IS_GAME_MODE");
         if (isGameMode == NULL || atoi(isGameMode) == 0)
@@ -67,8 +67,7 @@ int main(int argc, char **argv) {
         wrefresh(cmdWin);
         wmove(cmdWin, 1, 11);
         whline(cmdWin, ' ', maxX - 12);
-        if (memset(buf, 0, maxX) == NULL)
-            ERROR("Couldn't set buffer");
+        TRY(memset(buf, 0, maxX) == NULL);
         wgetstr(cmdWin, buf);
         int ret = exec_command(buf, mainWin, &game);
         if (ret == INVALID_CMD)

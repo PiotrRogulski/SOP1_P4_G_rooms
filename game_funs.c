@@ -72,9 +72,8 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     game->rooms[game->player_position].num_existing_objects--;
     game->player_objects[game->num_player_objects++] = obj;
 
-    print_game(game, win);
     pthread_mutex_unlock(game->game_mutex);
-    wrefresh(win);
+    print_game(game, win);
 }
 
 void drop(char *cmd, gameState_t *game, WINDOW *win) {
@@ -123,8 +122,8 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
     game->num_player_objects--;
     game->rooms[pos].objects[game->rooms[pos].num_existing_objects++] = obj;
 
-    print_game(game, win);
     pthread_mutex_unlock(game->game_mutex);
+    print_game(game, win);
 }
 
 void save(char *cmd, gameState_t *game, WINDOW *win) {
@@ -136,40 +135,30 @@ void save(char *cmd, gameState_t *game, WINDOW *win) {
     if (sscanf(cmd, "save %s", path) <= 0)
         return;
 
-    int f = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777);
-    if (f < 0)
-        ERROR("Couldn't open file");
+    int f;
+    TRY((f = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
 
-    if (write(f, &n, sizeof(unsigned)) < 0)
-        ERROR("Couldn't write n");
-    if (write(f, game->rooms_map, n*n * sizeof(char)) < 0)
-        ERROR("Couldn't write graph to file");
+    TRY(write(f, &n, sizeof(unsigned)) < 0);
+    TRY(write(f, game->rooms_map, n*n * sizeof(char)) < 0);
 
-    if (write(f, &game->player_position, sizeof(unsigned)) < 0)
-        ERROR("Couldn't write player position");
-    if (write(f, &game->num_player_objects, sizeof(unsigned)) < 0)
-        ERROR("Couldn't write inventory object count");
+    TRY(write(f, &game->player_position, sizeof(unsigned)) < 0);
+    TRY(write(f, &game->num_player_objects, sizeof(unsigned)) < 0);
     for (unsigned i = 0; i < game->num_player_objects; i++)
-        if (write(f, game->player_objects[i], sizeof(object_t)) < 0)
-            ERROR("Couldn't write object");
+        TRY(write(f, game->player_objects[i], sizeof(object_t)) < 0);
 
     for (unsigned i = 0; i < n; i++) {
-        if (write(f, &i, sizeof(unsigned)) < 0)
-            ERROR("Couldn't write room id");
-        if (write(f, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0)
-            ERROR("Couldn't write object count");
-        if (write(f, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0)
-            ERROR("Couldn't write assigned object count");
+        TRY(write(f, &i, sizeof(unsigned)) < 0);
+        TRY(write(f, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0);
+        TRY(write(f, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0);
         for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++)
-            if (write(f, game->rooms[i].objects[j], sizeof(object_t)) < 0)
-                ERROR("Couldn't write object");
+            TRY(write(f, game->rooms[i].objects[j], sizeof(object_t)) < 0);
     }
 
     pthread_kill(game->alarm_generator_tid, SIGALRM);
 
     close(f);
-    print_game(game, win);
     pthread_mutex_unlock(game->game_mutex);
+    print_game(game, win);
 }
 
 void find_path(char *cmd, gameState_t *game, WINDOW *win) {
@@ -185,13 +174,11 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
         args[i].game = game;
         args[i].seed = rand();
         args[i].destination = x;
-        if (pthread_create(&tids[i], NULL, find_path_worker, &args[i]))
-            ERROR("Couldn't create worker thread");
+        TRY(pthread_create(&tids[i], NULL, find_path_worker, &args[i]));
     }
 
     for (unsigned i = 0; i < k; i++)
-        if (pthread_join(tids[i], NULL))
-            ERROR("Couldn't join worker thread");
+        TRY(pthread_join(tids[i], NULL));
 
     unsigned shortest_id = 0;
     unsigned shortest_length = args[0].length;
@@ -237,8 +224,7 @@ void *find_path_worker(void *voidArgs) {
     unsigned destination = args->destination;
     unsigned *path;
 
-    if ((path = malloc(1000 * sizeof(unsigned))) == NULL)
-        ERROR("Couldn't allocate path");
+    TRY((path = malloc(1000 * sizeof(unsigned))) == NULL);
 
     while (curr != destination && length < 1000) {
         unsigned next;
@@ -274,10 +260,10 @@ void quit(gameState_t *game, WINDOW *win) {
     free(game->rooms);
     free(game->rooms_map);
 
-    if (pthread_cancel(game->auto_save_tid))
-        ERROR("Couldn't cancel auto-save thread");
-    if (pthread_cancel(game->alarm_generator_tid))
-        ERROR("Couldn't cancel alarm generator");
+    TRY(pthread_cancel(game->auto_save_tid));
+    TRY(pthread_cancel(game->alarm_generator_tid));
+    TRY(pthread_cancel(game->swap_objects_tid));
+    TRY(pthread_cancel(game->user_signal_catcher_tid));
 
     pthread_mutex_unlock(game->game_mutex);
 

@@ -32,12 +32,14 @@ typedef struct gameState {
     object_t *player_objects[2];
     unsigned num_player_objects;
     unsigned n;
-    sigset_t *mask;
+    // sigset_t *mask;
     pthread_mutex_t *game_mutex;
     pthread_t auto_save_tid;
     pthread_t alarm_generator_tid;
+    pthread_t user_signal_catcher_tid;
+    pthread_t swap_objects_tid;
     WINDOW *win;
-    WINDOW *cmdWin;
+    unsigned swap_seed;
 } gameState_t;
 
 typedef struct timespec timespec_t;
