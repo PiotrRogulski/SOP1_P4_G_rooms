@@ -8,7 +8,6 @@
 #define ERROR(source) (perror(source),\
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
                        exit(EXIT_FAILURE))
-
 #define TRY(expr) if (expr) ERROR(#expr)
 
 int main(int argc, char **argv) {

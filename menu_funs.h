@@ -18,7 +18,7 @@
 #define TRY(expr) if (expr) ERROR(#expr)
 #define UNUSED(x) (void)(x)
 #define MAXFD 20
-#define SET_GAME_MODE(mode) setenv("IS_GAME_MODE", #mode, 1)
+#define SET_GAME_MODE(mode) TRY(setenv("IS_GAME_MODE", #mode, 1) < 0)
 
 int walk_print(const char *name, const struct stat *s, int type, struct FTW *f);
 

@@ -10,6 +10,7 @@ void print_game(gameState_t *game, WINDOW *win) {
     print_curr_room(game->player_position, game->n, win);
     print_objects(game, win);
     print_inventory(game, win);
+    print_game_complete(game, win);
 
     pthread_mutex_unlock(game->game_mutex);
 
@@ -78,4 +79,33 @@ void print_inventory(gameState_t *game, WINDOW *win) {
             mvwprintw(win, y + i, x+4, "%-2u assigned to %u", game->player_objects[i]->id, game->player_objects[i]->assigned_room);
     }
     wrefresh(win);
+}
+
+void print_game_complete(gameState_t *game, WINDOW *win) {
+    unsigned n = game->n;
+
+    if (game->num_player_objects > 0)
+        return;
+
+    for (unsigned i = 0; i < n; i++)
+        for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++)
+            if (game->rooms[i].objects[j]->assigned_room != i)
+                return;
+    wattron(win, COLOR_PAIR(2));
+    print_msg(win, "GAME COMPLETED");
+    wattroff(win, COLOR_PAIR(2));
+}
+
+void print_msg(WINDOW *win, char *fmt, ...) {
+    va_list args;
+    char *msg;
+
+    va_start(args, fmt);
+    TRY(vasprintf(&msg, fmt, args) < 0);
+    wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
+    mvwprintw(win, getmaxy(win) - 1, (getmaxx(win) - strlen(msg)) / 2, " %s ", msg);
+    wrefresh(win);
+    va_end(args);
+
+    free(msg);
 }

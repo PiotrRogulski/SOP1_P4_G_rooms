@@ -11,10 +11,6 @@
 #include "types.h"
 #include "util_funs.h"
 
-#define ERROR(source) (perror(source),\
-                       fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
-                       exit(EXIT_FAILURE))
-
 /**
  * Print current game state
  */
@@ -39,3 +35,13 @@ void print_objects(gameState_t *game, WINDOW *win);
  * Print objects in player's inventory.
  */
 void print_inventory(gameState_t *game, WINDOW *win);
+
+/**
+ * Prints a message when all objects are in the correct room.
+ */
+void print_game_complete(gameState_t *game, WINDOW *win);
+
+/**
+ * Prints a message at the bottom of the screen.
+ */
+void print_msg(WINDOW *win, char *fmt, ...);

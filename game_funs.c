@@ -13,12 +13,12 @@ void move_to(char *cmd, gameState_t *game, WINDOW *win) {
 
     if (x < n && game->rooms_map[x * n + curr] == 1) {
         game->player_position = x;
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 9, " Moved to room %u ", x);
+        print_msg(win, "Moved to room %u", x);
         print_curr_room(x, n, win);
     } else if (x >= n) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Room %u doesn't exist ", x);
+        print_msg(win, "Room %u doesn't exist", x);
     } else {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 12, " Cannot move to room %u ", x);
+        print_msg(win, "Cannot move to room %u", x);
     }
 
     pthread_mutex_unlock(game->game_mutex);
@@ -34,7 +34,7 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     pthread_mutex_lock(game->game_mutex);
 
     if (game->num_player_objects == 2) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Cannot pick up object: inventory full ");
+        print_msg(win, "Cannot pick up object: inventory full");
         wrefresh(win);
         return;
     }
@@ -49,7 +49,7 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     }
 
     if (obj == NULL) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 20, " Object with id %u doesn't exist here ", y);
+        print_msg(win, "Object with id %u doesn't exist here", y);
         wrefresh(win);
         pthread_mutex_unlock(game->game_mutex);
         return;
@@ -64,6 +64,7 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
 
     pthread_mutex_unlock(game->game_mutex);
     print_game(game, win);
+    print_msg(win, "Picked up object #%u", obj->id);
 }
 
 void drop(char *cmd, gameState_t *game, WINDOW *win) {
@@ -76,7 +77,7 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
         return;
 
     if (game->num_player_objects == 0) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 9, " Empty inventory ");
+        print_msg(win, "Empty inventory");
         wrefresh(win);
         return;
     }
@@ -91,14 +92,14 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
     }
 
     if (obj == NULL) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 19, " Object with id %u not in inventory ", z);
+        print_msg(win, "Object with id %u not in inventory", z);
         wrefresh(win);
         pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
     if (game->rooms[pos].num_existing_objects == 2) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 17, " Already two objects in this room ");
+        print_msg(win, "Already two objects in this room");
         wrefresh(win);
         pthread_mutex_unlock(game->game_mutex);
         return;
@@ -114,6 +115,7 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
 
     pthread_mutex_unlock(game->game_mutex);
     print_game(game, win);
+    print_msg(win, "Dropped object #%u", obj->id);
 }
 
 void save(char *cmd, gameState_t *game, WINDOW *win) {
@@ -185,7 +187,7 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
     print_game(game, win);
 
     if (shortest_length == 2000) {
-        mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 11, " Couldn't find a path ");
+        print_msg(win, "Couldn't find a path");
         wrefresh(win);
         for (unsigned i = 0; i < k; i++)
             free(args[i].path);

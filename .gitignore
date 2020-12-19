@@ -54,6 +54,11 @@ dkms.conf
 main
 *.txt
 map*
+m*
 g*
 *.tar*
 t
+
+!*.c
+!*.h
+!Makefile

@@ -1,11 +1,5 @@
 #include "util_funs.h"
 
-#define ERROR(source) (perror(source),\
-                       fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
-                       exit(EXIT_FAILURE))
-
-#define TRY(expr) if (expr) ERROR(#expr)
-
 void parse_args(int argc, char **argv) {
     int c;
     char *arg = NULL;
@@ -155,7 +149,7 @@ void *auto_save_game(void *voidArgs) {
                 TRY((f = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) == -1);
                 pthread_mutex_lock(game->game_mutex);
 
-                mvwprintw(game->win, getmaxy(game->win) - 1, getmaxx(game->win) / 2 - 12, " Performing auto-save ");
+                print_msg(game->win, "Performing auto-save");
 
                 TRY(write(f, &n, sizeof(unsigned)) < 0);
                 TRY(write(f, game->rooms_map, n*n * sizeof(char)) < 0);
@@ -230,7 +224,7 @@ void *swap_objects(void *voidArgs) {
 
                 WINDOW *win = game->win;
                 print_game(game, win);
-                mvwprintw(win, getmaxy(win) - 1, getmaxx(win) / 2 - 14, " Swapped %u and %u ", (*obj1)->id, (*obj2)->id);
+                print_msg(win, "Swapped objects #%u and #%u", (*obj1)->id, (*obj2)->id);
                 wrefresh(win);
 
                 break;

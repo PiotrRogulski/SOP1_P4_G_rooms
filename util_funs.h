@@ -10,6 +10,12 @@
 #include "menu_funs.h"
 #include "types.h"
 
+#define ERROR(source) (perror(source),\
+                       fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
+                       exit(EXIT_FAILURE))
+
+#define TRY(expr) if (expr) ERROR(#expr)
+
 #define INVALID_CMD -1
 #define OK_CMD       0
 #define EXIT_CMD     1

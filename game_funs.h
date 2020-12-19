@@ -15,7 +15,7 @@
                        exit(EXIT_FAILURE))
 #define TRY(expr) if (expr) ERROR(#expr)
 #define UNUSED(x) (void)(x)
-#define SET_GAME_MODE(mode) setenv("IS_GAME_MODE", #mode, 1)
+#define SET_GAME_MODE(mode) TRY(setenv("IS_GAME_MODE", #mode, 1) < 0)
 
 /**
  * Move to a different room if possible.
