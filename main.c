@@ -1,15 +1,8 @@
-#include <ncurses.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
-#include <errno.h>
-#include <signal.h>
-#include <linux/limits.h>
 #include "util_funs.h"
 
 #define ERROR(source) (perror(source),\

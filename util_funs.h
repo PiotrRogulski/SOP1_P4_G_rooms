@@ -1,9 +1,11 @@
 #pragma once
 
-#include <linux/limits.h>
-#include <ncurses.h>
-#include <pthread.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <time.h>
+#include <wordexp.h>
+#include <linux/limits.h>
+#include <sys/stat.h>
 #include "game_funs.h"
 #include "menu_funs.h"
 #include "types.h"
@@ -13,42 +15,41 @@
 #define EXIT_CMD     1
 
 /**
- * Parse commandline options
+ * Parse command line options.
  */
 void parse_args(int argc, char **argv);
 
 /**
- * Set the path to the backup file in the environment
+ * Set the path to the backup file in the environment.
  */
 void set_backup(char *path);
 
 /**
- * Parse the command and run the selected function
- *
- * @param cmd  game command with arguments
- * @param win  main window woth game state output
- * @param game state of the current game together with info about threads
+ * Parse the command and run the selected function.
  */
 int exec_command(char *cmd, WINDOW *win, gameState_t *game);
 
 /**
- * Sends a SIGALRM to the autosave thread every 60 seconds
+ * Sends a SIGALRM to the autosave thread every 60 seconds.
  */
 void *alarm_generator(void *voidArgs);
 
+/**
+ * Catches SIGUSR1 and resends it to the swap thread.
+ */
 void *user_signal_catcher(void *voidArgs);
 
 /**
- * Runs in a seperate thread and autosaves the game upon every SIGALRM
+ * Runs in a seperate thread and autosaves the game upon every SIGALRM.
  */
 void *auto_save_game(void *voidArgs);
 
 /**
- * Swaps two random objects in the game upon every SIGUSR1
+ * Swaps two random objects in the game upon every SIGUSR1.
  */
 void *swap_objects(void *voidArgs);
 
 /**
- * Thread cleanup handler for auto-save thread
+ * Thread cleanup handler for auto-save thread.
  */
 void unlock_mutexes(void *voidArgs);

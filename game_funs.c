@@ -1,14 +1,4 @@
-#include <ftw.h>
-#include <ncurses.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 #include "game_funs.h"
-#include "types.h"
 
 void move_to(char *cmd, gameState_t *game, WINDOW *win) {
     pthread_mutex_lock(game->game_mutex);

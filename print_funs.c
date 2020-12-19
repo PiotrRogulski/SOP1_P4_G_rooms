@@ -1,14 +1,4 @@
-#include <ftw.h>
-#include <ncurses.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 #include "print_funs.h"
-#include "types.h"
 
 void print_game(gameState_t *game, WINDOW *win) {
     werase(win);
@@ -48,9 +38,6 @@ void print_table(char *table, unsigned n, WINDOW *win) {
     wattroff(win, COLOR_PAIR(1) | COLOR_PAIR(2));
 }
 
-/**
- * Print current position of the player
- */
 void print_curr_room(unsigned curr, unsigned n, WINDOW *win) {
     mvwprintw(win, 9 + 2*n, 17, "  ");
     mvwprintw(win, 9 + 2*n, 3, "Current room: %u", curr);

@@ -1,16 +1,4 @@
-#include <ftw.h>
-#include <ncurses.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
-#include <signal.h>
 #include "menu_funs.h"
-#include "types.h"
 
 #define TMP_FILE "/tmp/dir_tree.txt"
 

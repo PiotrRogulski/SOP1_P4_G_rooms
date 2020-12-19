@@ -1,11 +1,3 @@
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <wordexp.h>
 #include "util_funs.h"
 
 #define ERROR(source) (perror(source),\

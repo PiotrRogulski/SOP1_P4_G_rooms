@@ -1,7 +1,7 @@
 #pragma once
 
-#include <pthread.h>
 #include <ncurses.h>
+#include <pthread.h>
 #include <signal.h>
 
 /**
@@ -32,7 +32,6 @@ typedef struct gameState {
     object_t *player_objects[2];
     unsigned num_player_objects;
     unsigned n;
-    // sigset_t *mask;
     pthread_mutex_t *game_mutex;
     pthread_t auto_save_tid;
     pthread_t alarm_generator_tid;

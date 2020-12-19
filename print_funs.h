@@ -1,31 +1,41 @@
 #pragma once
 
-#include <stdlib.h>
-#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <ftw.h>
-#include <pthread.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "types.h"
 #include "util_funs.h"
-#include "print_funs.h"
 
 #define ERROR(source) (perror(source),\
                        fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
                        exit(EXIT_FAILURE))
 
+/**
+ * Print current game state
+ */
 void print_game(gameState_t *game, WINDOW *win);
 
 /**
- * Prints connections between the rooms
+ * Print connections between the rooms.
  */
 void print_table(char *table, unsigned n, WINDOW *win);
 
 /**
- * Prints objects in each room
+ * Print current player position.
  */
 void print_curr_room(unsigned curr, unsigned n, WINDOW *win);
 
 /**
- * Prints objects in player's inventory
+ * Print objects in each room.
  */
 void print_objects(gameState_t *game, WINDOW *win);
+
+/**
+ * Print objects in player's inventory.
+ */
 void print_inventory(gameState_t *game, WINDOW *win);
