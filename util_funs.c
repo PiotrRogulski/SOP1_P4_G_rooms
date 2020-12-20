@@ -104,7 +104,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
 
 void *alarm_generator(void *voidArgs) {
     gameState_t *game = voidArgs;
-    timespec_t t = { 6, 0 };
+    timespec_t t = { 60, 0 };
     sigset_t mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGALRM);
