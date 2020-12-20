@@ -78,7 +78,7 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
 
     if (game->num_player_objects == 0) {
         print_msg(win, "Empty inventory");
-        wrefresh(win);
+        pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
@@ -93,14 +93,12 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
 
     if (obj == NULL) {
         print_msg(win, "Object with id %u not in inventory", z);
-        wrefresh(win);
         pthread_mutex_unlock(game->game_mutex);
         return;
     }
 
     if (game->rooms[pos].num_existing_objects == 2) {
         print_msg(win, "Already two objects in this room");
-        wrefresh(win);
         pthread_mutex_unlock(game->game_mutex);
         return;
     }
@@ -186,13 +184,10 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
         }
     }
 
-    pthread_mutex_lock(game->game_mutex);
-
     print_game(game, win);
 
     if (shortest_length == 2000) {
         print_msg(win, "Couldn't find a path");
-        wrefresh(win);
         for (unsigned i = 0; i < k; i++)
             free(args[i].path);
         return;
@@ -202,8 +197,6 @@ void find_path(char *cmd, gameState_t *game, WINDOW *win) {
     for (unsigned i = 0; i < shortest_length; i++)
         mvwprintw(win, getmaxy(win) - 3, 35 + 3*i, "%2u ", args[shortest_id].path[i]);
     wrefresh(win);
-
-    pthread_mutex_unlock(game->game_mutex);
 
     for (unsigned i = 0; i < k; i++)
         free(args[i].path);

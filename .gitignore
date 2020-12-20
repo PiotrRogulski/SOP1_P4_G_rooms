@@ -58,6 +58,8 @@ m*
 g*
 *.tar*
 t
+ts
+hello
 
 !*.c
 !*.h
