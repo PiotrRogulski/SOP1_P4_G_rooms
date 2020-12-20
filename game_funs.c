@@ -121,11 +121,15 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
 void save(char *cmd, gameState_t *game, WINDOW *win) {
     pthread_mutex_lock(game->game_mutex);
 
-    char path[strlen(cmd)];
+    char path[PATH_MAX];
     unsigned n = game->n;
 
     if (sscanf(cmd, "save %s", path) <= 0)
         return;
+
+    char *new_path = expand_path(path);
+    strcpy(path, new_path);
+    free(new_path);
 
     int f;
     TRY((f = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);

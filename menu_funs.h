@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <wordexp.h>
 #include <sys/stat.h>
 #include "print_funs.h"
 #include "types.h"

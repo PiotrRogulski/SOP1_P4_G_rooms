@@ -19,30 +19,33 @@ void parse_args(int argc, char **argv) {
 }
 
 void set_backup(char *path) {
+    char default_path[] = "~/.game-autosave";
+    char *new_path;
+
     if (path != NULL) {
-        TRY(setenv("GAME_AUTOSAVE", path, 1));
-        return;
-    }
-    char *env_backup_path = getenv("GAME_AUTOSAVE");
-    if (env_backup_path == NULL) {
-        char default_path[] = "~/.game-autosave";
-        wordexp_t p;
-        TRY(wordexp(default_path, &p, 0));
-        TRY(setenv("GAME_AUTOSAVE", p.we_wordv[0], 1));
-        wordfree(&p);
+        new_path = expand_path(path);
+        TRY(setenv("GAME_AUTOSAVE", new_path, 1));
+        free(new_path);
+    } else {
+        char *env_backup_path = getenv("GAME_AUTOSAVE");
+        if (env_backup_path == NULL) {
+            new_path = expand_path(default_path);
+            TRY(setenv("GAME_AUTOSAVE", new_path, 1));
+            free(new_path);
+        }
     }
 }
 
 int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
-    char *isGameModeStr = getenv("IS_GAME_MODE");
-    int isGameMode = 1;
-    if (isGameModeStr == NULL || atoi(isGameModeStr) == 0)
-        isGameMode = 0;
+    char *is_game_mode_str = getenv("IS_GAME_MODE");
+    int is_game_mode = 1;
+    if (is_game_mode_str == NULL || atoi(is_game_mode_str) == 0)
+        is_game_mode = 0;
 
-    char *firstSpace = strchr(cmd, ' ');
+    char *first_space = strchr(cmd, ' ');
 
-    if (isGameMode) {
-        if (firstSpace == NULL) {
+    if (is_game_mode) {
+        if (first_space == NULL) {
             if (strncmp(cmd, "quit", 4) != 0) {
                 return INVALID_CMD;
             }
@@ -71,7 +74,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             return OK_CMD;
         }
     } else { // in menu
-        if (firstSpace == NULL) {
+        if (first_space == NULL) {
             if (strncmp(cmd, "exit", 4) != 0) {
                 return INVALID_CMD;
             }
@@ -101,7 +104,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
 
 void *alarm_generator(void *voidArgs) {
     gameState_t *game = voidArgs;
-    timespec_t t = { 60, 0 };
+    timespec_t t = { 6, 0 };
     sigset_t mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGALRM);
@@ -182,7 +185,7 @@ void *auto_save_game(void *voidArgs) {
 }
 
 void *swap_objects(void *voidArgs) {
-    pthread_cleanup_push(unlock_mutexes, (gameState_t*) voidArgs);
+    pthread_cleanup_push(unlock_mutexes, voidArgs);
 
     gameState_t *game = voidArgs;
     unsigned seed = game->swap_seed;
@@ -240,4 +243,13 @@ void *swap_objects(void *voidArgs) {
 
 void unlock_mutexes(void *voidArgs) {
     pthread_mutex_unlock(((gameState_t*) voidArgs)->game_mutex);
+}
+
+char *expand_path(char *path) {
+    wordexp_t p;
+    TRY(wordexp(path, &p, 0));
+    char *new_path;
+    TRY(asprintf(&new_path, "%s", p.we_wordv[0]) < 0);
+    wordfree(&p);
+    return new_path;
 }

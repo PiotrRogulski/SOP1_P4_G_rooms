@@ -25,16 +25,16 @@ int main(int argc, char **argv) {
 
     int maxY, maxX;
     getmaxyx(stdscr, maxY, maxX);
-    WINDOW *mainWin = newwin(maxY - 3, maxX, 0, 0);
-    WINDOW *cmdWin = newwin(3, maxX, maxY - 3, 0);
+    WINDOW *main_win = newwin(maxY - 3, maxX, 0, 0);
+    WINDOW *cmd_win = newwin(3, maxX, maxY - 3, 0);
 
-    wborder(mainWin, 0, 0, 0, 0, 0, 0, 0, 0);
-    wborder(cmdWin, 0, 0, 0, 0, 0, 0, 0, 0);
+    wborder(main_win, 0, 0, 0, 0, 0, 0, 0, 0);
+    wborder(cmd_win, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    wmove(cmdWin, 1, 2);
-    wprintw(cmdWin, "Command: ");
-    wrefresh(mainWin);
-    wrefresh(cmdWin);
+    wmove(cmd_win, 1, 2);
+    wprintw(cmd_win, "Command: ");
+    wrefresh(main_win);
+    wrefresh(cmd_win);
 
     // Set up signals
     sigset_t old_mask, new_mask;
@@ -48,30 +48,30 @@ int main(int argc, char **argv) {
     pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
     gameState_t game;
     game.game_mutex = &game_mutex;
-    game.win = mainWin;
+    game.win = main_win;
     game.swap_seed = rand();
     while (1) {
-        char* isGameMode = getenv("IS_GAME_MODE");
-        if (isGameMode == NULL || atoi(isGameMode) == 0)
-            mvwprintw(cmdWin, 0, 2, " Mode: Menu ");
+        char* is_game_mode = getenv("IS_GAME_MODE");
+        if (is_game_mode == NULL || atoi(is_game_mode) == 0)
+            mvwprintw(cmd_win, 0, 2, " Mode: Menu ");
         else
-            mvwprintw(cmdWin, 0, 2, " Mode: Game ");
-        wrefresh(cmdWin);
-        wmove(cmdWin, 1, 11);
-        whline(cmdWin, ' ', maxX - 12);
+            mvwprintw(cmd_win, 0, 2, " Mode: Game ");
+        wrefresh(cmd_win);
+        wmove(cmd_win, 1, 11);
+        whline(cmd_win, ' ', maxX - 12);
         TRY(memset(buf, 0, maxX) == NULL);
-        wgetstr(cmdWin, buf);
-        int ret = exec_command(buf, mainWin, &game);
+        wgetstr(cmd_win, buf);
+        int ret = exec_command(buf, main_win, &game);
         if (ret == INVALID_CMD)
             continue;
         if (ret == EXIT_CMD)
             break;
-        wrefresh(cmdWin);
+        wrefresh(cmd_win);
     }
 
     // curses cleanup
-    delwin(mainWin);
-    delwin(cmdWin);
+    delwin(main_win);
+    delwin(cmd_win);
     endwin();
 
     return EXIT_SUCCESS;

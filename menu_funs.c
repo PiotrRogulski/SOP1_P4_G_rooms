@@ -19,13 +19,21 @@ int walk_print(const char *name, const struct stat *s, int type, struct FTW *f) 
 }
 
 void map_from_dir_tree(char* cmd) {
-    char dirPath[strlen(cmd)];
-    char filePath[strlen(cmd)];
-    if (sscanf(cmd, "map-from-dir-tree %s %s", dirPath, filePath) <= 0)
+    char dir_path[PATH_MAX];
+    char file_path[PATH_MAX];
+    if (sscanf(cmd, "map-from-dir-tree %s %s", dir_path, file_path) <= 0)
         return;
 
+    char *new_dir_path = expand_path(dir_path);
+    strcpy(dir_path, new_dir_path);
+    free(new_dir_path);
+
+    char *new_file_path = expand_path(file_path);
+    strcpy(file_path, new_file_path);
+    free(new_file_path);
+
     TRY(remove(TMP_FILE) && errno != ENOENT);
-    TRY(nftw(dirPath, walk_print, MAXFD, FTW_PHYS) < 0);
+    TRY(nftw(dir_path, walk_print, MAXFD, FTW_PHYS) < 0);
 
     struct stat *s = malloc(sizeof(struct stat));
     TRY(stat(TMP_FILE, s) != 0);
@@ -53,13 +61,13 @@ void map_from_dir_tree(char* cmd) {
         }
     }
 
-    int outFile;
-    TRY((outFile = open(filePath, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
+    int out_file;
+    TRY((out_file = open(file_path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
 
-    TRY(write(outFile, &n, sizeof(unsigned)) < 0);
-    TRY(write(outFile, map, n*n * sizeof(char)) < 0);
+    TRY(write(out_file, &n, sizeof(unsigned)) < 0);
+    TRY(write(out_file, map, n*n * sizeof(char)) < 0);
 
-    close(outFile);
+    close(out_file);
     close(f);
     free(s);
     free(map);
@@ -70,9 +78,13 @@ void generate_random_map(char *cmd, WINDOW *win) {
     UNUSED(win);
 
     unsigned n;
-    char filePath[strlen(cmd)];
-    if (sscanf(cmd, "generate-random-map %u %s", &n, filePath) <= 0)
+    char file_path[PATH_MAX];
+    if (sscanf(cmd, "generate-random-map %u %s", &n, file_path) <= 0)
         return;
+
+    char *new_file_path = expand_path(file_path);
+    strcpy(file_path, new_file_path);
+    free(new_file_path);
 
     if (n > 8 * sizeof(unsigned long long))
         return;
@@ -94,27 +106,31 @@ void generate_random_map(char *cmd, WINDOW *win) {
         curr = next;
     }
 
-    int fileDes;
-    TRY((fileDes = open(filePath, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
+    int f;
+    TRY((f = open(file_path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
 
-    TRY(write(fileDes, &n, sizeof(unsigned)) < 0);
-    TRY(write(fileDes, tab, n*n) < 0);
+    TRY(write(f, &n, sizeof(unsigned)) < 0);
+    TRY(write(f, tab, n*n) < 0);
 
     free(tab);
-    close(fileDes);
+    close(f);
 }
 
 void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
-    char path[strlen(cmd)];
+    char path[PATH_MAX];
     if (sscanf(cmd, "start-game %s", path) <= 0)
         return;
 
-    int fileDes;
-    TRY((fileDes = open(path, O_RDONLY)) < 0);
+    char *new_path = expand_path(path);
+    strcpy(path, new_path);
+    free(new_path);
+
+    int f;
+    TRY((f = open(path, O_RDONLY)) < 0);
 
     unsigned n;
-    TRY(read(fileDes, &n, sizeof(unsigned)) <= 0);
+    TRY(read(f, &n, sizeof(unsigned)) <= 0);
 
     pthread_mutex_lock(game->game_mutex);
 
@@ -122,7 +138,7 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     game->player_position = rand() % n;
     game->num_player_objects = 0;
     TRY((game->rooms_map = malloc(n*n * sizeof(char))) == NULL);
-    TRY(read(fileDes, game->rooms_map, n*n) <= 0);
+    TRY(read(f, game->rooms_map, n*n) <= 0);
 
     TRY((game->rooms = calloc(n, sizeof(room_t))) == NULL);
 
@@ -159,9 +175,13 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
 
 void load_game(char *cmd, gameState_t *game, WINDOW *win) {
     SET_GAME_MODE(1);
-    char path[strlen(cmd)];
+    char path[PATH_MAX];
     if (sscanf(cmd, "load-game %s", path) <= 0)
         return;
+
+    char *new_path = expand_path(path);
+    strcpy(path, new_path);
+    free(new_path);
 
     int f;
     TRY((f = open(path, O_RDONLY)) == -1);

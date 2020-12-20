@@ -59,3 +59,8 @@ void *swap_objects(void *voidArgs);
  * Thread cleanup handler for auto-save thread.
  */
 void unlock_mutexes(void *voidArgs);
+
+/**
+ * Expand the path like a shell would.
+ */
+char *expand_path(char *path);
