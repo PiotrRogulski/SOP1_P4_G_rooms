@@ -42,17 +42,7 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
     if (is_game_mode_str == NULL || atoi(is_game_mode_str) == 0)
         is_game_mode = 0;
 
-    char *first_space = strchr(cmd, ' ');
-
     if (is_game_mode) {
-        if (first_space == NULL) {
-            if (strncmp(cmd, "quit", 4) != 0) {
-                return INVALID_CMD;
-            }
-            quit(game, win);
-            return OK_CMD;
-        }
-
         if (strncmp(cmd, "move-to", 7) == 0) {
             move_to(cmd, game, win);
             return OK_CMD;
@@ -73,14 +63,11 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
             find_path(cmd, game, win);
             return OK_CMD;
         }
-    } else { // in menu
-        if (first_space == NULL) {
-            if (strncmp(cmd, "exit", 4) != 0) {
-                return INVALID_CMD;
-            }
-            return EXIT_CMD;
+        if (strncmp(cmd, "quit", 4) == 0) {
+            quit(game, win);
+            return OK_CMD;
         }
-
+    } else { // in menu
         if (strncmp(cmd, "map-from-dir-tree", 17) == 0) {
             map_from_dir_tree(cmd);
             return OK_CMD;
@@ -96,6 +83,9 @@ int exec_command(char *cmd, WINDOW *win, gameState_t *game) {
         if (strncmp(cmd, "load-game", 9) == 0) {
             load_game(cmd, game, win);
             return OK_CMD;
+        }
+        if (strncmp(cmd, "exit", 4) == 0) {
+            return EXIT_CMD;
         }
     }
 
@@ -115,6 +105,7 @@ void *alarm_generator(void *voidArgs) {
             continue;
         TRY(pthread_kill(game->auto_save_tid, SIGALRM));
     }
+
     return NULL;
 }
 
@@ -130,14 +121,21 @@ void *user_signal_catcher(void *voidArgs) {
         if (sig_no > 0)
             TRY(pthread_kill(game->swap_objects_tid, SIGUSR1));
     }
+
+    return NULL;
 }
 
 void *auto_save_game(void *voidArgs) {
-    pthread_cleanup_push(unlock_mutexes, (gameState_t*) voidArgs);
+    pthread_cleanup_push(unlock_mutexes, voidArgs);
 
     gameState_t *game = voidArgs;
     unsigned n = game->n;
+
     char *path = getenv("GAME_AUTOSAVE");
+    char *new_path = expand_path(path);
+    strcpy(path, new_path);
+    free(new_path);
+
     int f;
     sigset_t mask;
     sigemptyset(&mask);
@@ -180,6 +178,7 @@ void *auto_save_game(void *voidArgs) {
                 ERROR("Unexpected signal");
         }
     }
+
     pthread_cleanup_pop(0);
     return NULL;
 }
@@ -237,7 +236,6 @@ void *swap_objects(void *voidArgs) {
     }
 
     pthread_cleanup_pop(0);
-
     return NULL;
 }
 

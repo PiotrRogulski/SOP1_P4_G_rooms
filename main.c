@@ -37,11 +37,11 @@ int main(int argc, char **argv) {
     wrefresh(cmd_win);
 
     // Set up signals
-    sigset_t old_mask, new_mask;
+    sigset_t new_mask;
     sigemptyset(&new_mask);
     sigaddset(&new_mask, SIGALRM);
     sigaddset(&new_mask, SIGUSR1);
-    TRY(pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask));
+    TRY(pthread_sigmask(SIG_BLOCK, &new_mask, NULL));
 
     // Main program loop
     char buf[maxX];

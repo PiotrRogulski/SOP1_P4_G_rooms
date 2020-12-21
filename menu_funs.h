@@ -24,21 +24,21 @@
 int walk_print(const char *name, const struct stat *s, int type, struct FTW *f);
 
 /**
- * Creates a map from files in the specified directory.
+ * Create a map from files in the specified directory.
  */
 void map_from_dir_tree(char *cmd);
 
 /**
- * Generates a random connected graph of size n.
+ * Generate a random connected graph of size n.
  */
 void generate_random_map(char *cmd, WINDOW *win);
 
 /**
- * Initializes the game structure woth random objects on a given map.
+ * Initialize the game structure woth random objects on a given map.
  */
 void start_game(char *cmd, gameState_t *game, WINDOW *win);
 
 /**
- * Loads a saved game from a file.
+ * Load a saved game from a file.
  */
 void load_game(char *cmd, gameState_t *game, WINDOW *win);

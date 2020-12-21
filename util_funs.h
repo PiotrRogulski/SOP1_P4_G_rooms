@@ -26,7 +26,7 @@
 void parse_args(int argc, char **argv);
 
 /**
- * Set the path to the backup file in the environment.
+ * Set the path to the backup file in the environment variable GAME_AUTOSAVE.
  */
 void set_backup(char *path);
 
@@ -36,27 +36,27 @@ void set_backup(char *path);
 int exec_command(char *cmd, WINDOW *win, gameState_t *game);
 
 /**
- * Sends a SIGALRM to the autosave thread every 60 seconds.
+ * Send a SIGALRM to the autosave thread every 60 seconds.
  */
 void *alarm_generator(void *voidArgs);
 
 /**
- * Catches SIGUSR1 and resends it to the swap thread.
+ * Catch SIGUSR1 and resend it to the swap thread.
  */
 void *user_signal_catcher(void *voidArgs);
 
 /**
- * Runs in a seperate thread and autosaves the game upon every SIGALRM.
+ * Run a seperate thread and autosave the game upon every SIGALRM.
  */
 void *auto_save_game(void *voidArgs);
 
 /**
- * Swaps two random objects in the game upon every SIGUSR1.
+ * Swap two random objects in the game upon every SIGUSR1.
  */
 void *swap_objects(void *voidArgs);
 
 /**
- * Thread cleanup handler for auto-save thread.
+ * Thread cleanup handler for autosave thread.
  */
 void unlock_mutexes(void *voidArgs);
 

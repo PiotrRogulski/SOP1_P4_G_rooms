@@ -37,11 +37,11 @@ void print_objects(gameState_t *game, WINDOW *win);
 void print_inventory(gameState_t *game, WINDOW *win);
 
 /**
- * Prints a message when all objects are in the correct room.
+ * Print a message when all objects are in the correct room.
  */
 void print_game_complete(gameState_t *game, WINDOW *win);
 
 /**
- * Prints a message at the bottom of the screen.
+ * Print a message at the bottom of the screen.
  */
 void print_msg(WINDOW *win, char *fmt, ...);

@@ -43,13 +43,13 @@ void map_from_dir_tree(char* cmd) {
     char *map = calloc(n*n, sizeof(char));
     int *list = calloc(n + 1, sizeof(int));
 
-    int f;
-    TRY((f = open(TMP_FILE, O_RDONLY)) < 0);
+    int file;
+    TRY((file = open(TMP_FILE, O_RDONLY)) < 0);
     int c;
-    int r;
+    int ret;
     unsigned i = 0;
     list[0] = 0;
-    while ((r = read(f, &c, sizeof(int))) != 0 && r != -1)
+    while ((ret = read(file, &c, sizeof(int))) != 0 && ret != -1)
         list[i++] = c;
 
     for (i = 0; i < n; i++) {
@@ -68,7 +68,7 @@ void map_from_dir_tree(char* cmd) {
     TRY(write(out_file, map, n*n * sizeof(char)) < 0);
 
     close(out_file);
-    close(f);
+    close(file);
     free(s);
     free(map);
     free(list);
@@ -106,14 +106,14 @@ void generate_random_map(char *cmd, WINDOW *win) {
         curr = next;
     }
 
-    int f;
-    TRY((f = open(file_path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
+    int file;
+    TRY((file = open(file_path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
 
-    TRY(write(f, &n, sizeof(unsigned)) < 0);
-    TRY(write(f, tab, n*n) < 0);
+    TRY(write(file, &n, sizeof(unsigned)) < 0);
+    TRY(write(file, tab, n*n) < 0);
 
     free(tab);
-    close(f);
+    close(file);
 }
 
 void start_game(char *cmd, gameState_t *game, WINDOW *win) {
@@ -126,11 +126,11 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     strcpy(path, new_path);
     free(new_path);
 
-    int f;
-    TRY((f = open(path, O_RDONLY)) < 0);
+    int file;
+    TRY((file = open(path, O_RDONLY)) < 0);
 
     unsigned n;
-    TRY(read(f, &n, sizeof(unsigned)) <= 0);
+    TRY(read(file, &n, sizeof(unsigned)) <= 0);
 
     pthread_mutex_lock(game->game_mutex);
 
@@ -138,7 +138,7 @@ void start_game(char *cmd, gameState_t *game, WINDOW *win) {
     game->player_position = rand() % n;
     game->num_player_objects = 0;
     TRY((game->rooms_map = malloc(n*n * sizeof(char))) == NULL);
-    TRY(read(f, game->rooms_map, n*n) <= 0);
+    TRY(read(file, game->rooms_map, n*n) <= 0);
 
     TRY((game->rooms = calloc(n, sizeof(room_t))) == NULL);
 
@@ -183,37 +183,37 @@ void load_game(char *cmd, gameState_t *game, WINDOW *win) {
     strcpy(path, new_path);
     free(new_path);
 
-    int f;
-    TRY((f = open(path, O_RDONLY)) == -1);
+    int file;
+    TRY((file = open(path, O_RDONLY)) == -1);
 
     unsigned n;
-    TRY(read(f, &n, sizeof(unsigned)) <= 0);
+    TRY(read(file, &n, sizeof(unsigned)) <= 0);
 
     pthread_mutex_lock(game->game_mutex);
 
     game->n = n;
 
     TRY((game->rooms_map = malloc(n*n * sizeof(char))) == NULL);
-    TRY(read(f, game->rooms_map, n*n * sizeof(char)) <= 0);
+    TRY(read(file, game->rooms_map, n*n * sizeof(char)) <= 0);
 
-    TRY(read(f, &game->player_position, sizeof(unsigned)) <= 0);
-    TRY(read(f, &game->num_player_objects, sizeof(unsigned)) <= 0);
+    TRY(read(file, &game->player_position, sizeof(unsigned)) <= 0);
+    TRY(read(file, &game->num_player_objects, sizeof(unsigned)) <= 0);
     TRY(game->num_player_objects > 0 && (game->player_objects[0] = malloc(sizeof(object_t))) == NULL);
     TRY(game->num_player_objects > 1 && (game->player_objects[1] = malloc(sizeof(object_t))) == NULL);
     for (unsigned i = 0; i < game->num_player_objects; i++)
-        TRY(read(f, game->player_objects[i], sizeof(object_t)) <= 0);
+        TRY(read(file, game->player_objects[i], sizeof(object_t)) <= 0);
 
     TRY((game->rooms = calloc(n, sizeof(room_t))) == NULL);
     for (unsigned i = 0; i < n; i++) {
-        TRY(read(f, &game->rooms[i].id, sizeof(unsigned)) < 0);
-        TRY(read(f, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0);
+        TRY(read(file, &game->rooms[i].id, sizeof(unsigned)) < 0);
+        TRY(read(file, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0);
 
         TRY(game->rooms[i].num_existing_objects > 0 && (game->rooms[i].objects[0] = calloc(1, sizeof(room_t))) == NULL);
         TRY(game->rooms[i].num_existing_objects > 1 && (game->rooms[i].objects[1] = calloc(1, sizeof(room_t))) == NULL);
 
-        TRY(read(f, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0);
+        TRY(read(file, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0);
         for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++)
-            TRY(read(f, game->rooms[i].objects[j], sizeof(object_t)) < 0);
+            TRY(read(file, game->rooms[i].objects[j], sizeof(object_t)) < 0);
     }
 
     pthread_mutex_unlock(game->game_mutex);
@@ -225,5 +225,5 @@ void load_game(char *cmd, gameState_t *game, WINDOW *win) {
 
     print_game(game, win);
 
-    close(f);
+    close(file);
 }

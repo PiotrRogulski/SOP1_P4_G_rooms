@@ -129,28 +129,28 @@ void save(char *cmd, gameState_t *game, WINDOW *win) {
     strcpy(path, new_path);
     free(new_path);
 
-    int f;
-    TRY((f = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
+    int file;
+    TRY((file = open(path, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND, 0777)) < 0);
 
-    TRY(write(f, &n, sizeof(unsigned)) < 0);
-    TRY(write(f, game->rooms_map, n*n * sizeof(char)) < 0);
+    TRY(write(file, &n, sizeof(unsigned)) < 0);
+    TRY(write(file, game->rooms_map, n*n * sizeof(char)) < 0);
 
-    TRY(write(f, &game->player_position, sizeof(unsigned)) < 0);
-    TRY(write(f, &game->num_player_objects, sizeof(unsigned)) < 0);
+    TRY(write(file, &game->player_position, sizeof(unsigned)) < 0);
+    TRY(write(file, &game->num_player_objects, sizeof(unsigned)) < 0);
     for (unsigned i = 0; i < game->num_player_objects; i++)
-        TRY(write(f, game->player_objects[i], sizeof(object_t)) < 0);
+        TRY(write(file, game->player_objects[i], sizeof(object_t)) < 0);
 
     for (unsigned i = 0; i < n; i++) {
-        TRY(write(f, &i, sizeof(unsigned)) < 0);
-        TRY(write(f, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0);
-        TRY(write(f, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0);
+        TRY(write(file, &i, sizeof(unsigned)) < 0);
+        TRY(write(file, &game->rooms[i].num_existing_objects, sizeof(unsigned)) < 0);
+        TRY(write(file, &game->rooms[i].num_assigned_objects, sizeof(unsigned)) < 0);
         for (unsigned j = 0; j < game->rooms[i].num_existing_objects; j++)
-            TRY(write(f, game->rooms[i].objects[j], sizeof(object_t)) < 0);
+            TRY(write(file, game->rooms[i].objects[j], sizeof(object_t)) < 0);
     }
 
     pthread_kill(game->alarm_generator_tid, SIGALRM);
 
-    close(f);
+    close(file);
     pthread_mutex_unlock(game->game_mutex);
     print_game(game, win);
 }
