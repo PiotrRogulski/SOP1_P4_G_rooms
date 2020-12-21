@@ -60,6 +60,7 @@ g*
 t
 ts
 hello
+data/*
 
 !*.c
 !*.h

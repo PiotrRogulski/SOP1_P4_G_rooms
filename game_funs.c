@@ -63,8 +63,8 @@ void pick_up(char *cmd, gameState_t *game, WINDOW *win) {
     game->player_objects[game->num_player_objects++] = obj;
 
     pthread_mutex_unlock(game->game_mutex);
-    print_game(game, win);
     print_msg(win, "Picked up object #%u", obj->id);
+    print_game(game, win);
 }
 
 void drop(char *cmd, gameState_t *game, WINDOW *win) {
@@ -112,8 +112,8 @@ void drop(char *cmd, gameState_t *game, WINDOW *win) {
     game->rooms[pos].objects[game->rooms[pos].num_existing_objects++] = obj;
 
     pthread_mutex_unlock(game->game_mutex);
-    print_game(game, win);
     print_msg(win, "Dropped object #%u", obj->id);
+    print_game(game, win);
 }
 
 void save(char *cmd, gameState_t *game, WINDOW *win) {
