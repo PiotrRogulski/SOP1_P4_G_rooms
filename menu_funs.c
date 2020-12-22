@@ -1,3 +1,10 @@
+/**
+ * Oświadczam, że niniejsza praca stanowiąca podstawę do uznania osiągnięcia efektów
+ * uczenia się z przedmiotu SOP1 została wykonana przeze mnie samodzielnie.
+ * Piotr Rogulski
+ * 305867
+ */
+
 #include "menu_funs.h"
 
 #define TMP_FILE "/tmp/dir_tree.txt"

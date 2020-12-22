@@ -1,3 +1,10 @@
+/**
+ * Oświadczam, że niniejsza praca stanowiąca podstawę do uznania osiągnięcia efektów
+ * uczenia się z przedmiotu SOP1 została wykonana przeze mnie samodzielnie.
+ * Piotr Rogulski
+ * 305867
+ */
+
 #include "game_funs.h"
 
 void move_to(char *cmd, gameState_t *game, WINDOW *win) {
